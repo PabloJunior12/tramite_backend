@@ -1,0 +1,1434 @@
+[
+    {
+        "id": 1,
+        "name": "SUPERUSUARIO",
+        "username": "admin",
+        "surname": "ADEA",
+        "email": "adea@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "dhEXAtdN5urqulWEF4Lt0ahoxYUnp8sw8tcUQW6e",
+        "agency_id": 1,
+        "role": "admin",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-09-27T20:10:15.000000Z",
+        "updated_at": "2025-10-10T13:54:09.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 1,
+                "area": "Mesa De Partes Andahuaylas",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 1
+                }
+            },
+            {
+                "id": 14,
+                "area": "Tramite Virtual",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 14
+                }
+            },
+            {
+                "id": 2,
+                "area": "Gerencia",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 2
+                }
+            },
+            {
+                "id": 20,
+                "area": "Tesorer\u00eda \/ Rr.hh.",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 20
+                }
+            },
+            {
+                "id": 6,
+                "area": "Asesor\u00eda Legal",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 6
+                }
+            },
+            {
+                "id": 4,
+                "area": "Asist. Contabilidad \/ Patrimonio",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 4
+                }
+            },
+            {
+                "id": 5,
+                "area": "Tecnologias De La Informacion Y Seguridad",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 5
+                }
+            },
+            {
+                "id": 25,
+                "area": "Analista Acred05",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 25
+                }
+            },
+            {
+                "id": 3,
+                "area": "Contabilidad Adea",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 3
+                }
+            },
+            {
+                "id": 22,
+                "area": "Servicio De Desarrollo Empresarial",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 22
+                }
+            },
+            {
+                "id": 47,
+                "area": "Sub Gerencia De Administraci\u00f3n",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 47
+                }
+            },
+            {
+                "id": 21,
+                "area": "Sub Gerencia De Negocios",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 21
+                }
+            },
+            {
+                "id": 7,
+                "area": "Administrador De Agencia Andahuaylas",
+                "pivot": {
+                    "user_id": 1,
+                    "area_id": 7
+                }
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "name": "Deysi",
+        "username": "dmitma",
+        "surname": "Mitma Espinoza",
+        "email": "dmitma@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "sj6A3i2JyjaJUMXLC5ADZRbp7mFgorJepiogoKDf",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": true,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T14:30:40.000000Z",
+        "updated_at": "2025-11-03T20:32:28.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 7,
+                "area": "Administrador De Agencia Andahuaylas",
+                "pivot": {
+                    "user_id": 6,
+                    "area_id": 7
+                }
+            }
+        ]
+    },
+    {
+        "id": 7,
+        "name": "Cesar",
+        "username": "cvelazque",
+        "surname": "Velazque  Pastor",
+        "email": "cvelazque@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "bfGwWvw6VgqmPGmd03X6v8C19soQTHTIbtgEc98j",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T14:52:36.000000Z",
+        "updated_at": "2024-10-18T14:52:36.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 6,
+                "area": "Asesor\u00eda Legal",
+                "pivot": {
+                    "user_id": 7,
+                    "area_id": 6
+                }
+            }
+        ]
+    },
+    {
+        "id": 8,
+        "name": "Tania",
+        "username": "treinaga",
+        "surname": "Reinaga Urquizo",
+        "email": "asist.operaciones@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "ydxein2T1KfhVKxTY6dG8Ml3GBiUHO6PhXGrzchi",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T14:54:17.000000Z",
+        "updated_at": "2025-09-03T16:30:17.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 1,
+                "area": "Mesa De Partes Andahuaylas",
+                "pivot": {
+                    "user_id": 8,
+                    "area_id": 1
+                }
+            },
+            {
+                "id": 8,
+                "area": "Asist. Operaciones \/ Log\u00edstica",
+                "pivot": {
+                    "user_id": 8,
+                    "area_id": 8
+                }
+            }
+        ]
+    },
+    {
+        "id": 9,
+        "name": "Rosmery",
+        "username": "raiquipa",
+        "surname": "Aiquipa Enciso",
+        "email": "recibidor.pagador@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "bmk6pfi8kTTmhnFwEC9LOA639EOCaOi9GJQcqNOF",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T14:59:41.000000Z",
+        "updated_at": "2025-06-18T14:13:49.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 9,
+                "area": "Recibidor\/pagador Andahuaylas",
+                "pivot": {
+                    "user_id": 9,
+                    "area_id": 9
+                }
+            }
+        ]
+    },
+    {
+        "id": 10,
+        "name": "Wilfredo",
+        "username": "wramirez",
+        "surname": "Ramirez Rivas",
+        "email": "wramirez@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "SO2TGhUyB0yYFE67dNpF4Bywnfb5lXOxNyG7AQ05",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:03:28.000000Z",
+        "updated_at": "2024-10-18T15:03:28.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 26,
+                "area": "Analista Acred06",
+                "pivot": {
+                    "user_id": 10,
+                    "area_id": 26
+                }
+            }
+        ]
+    },
+    {
+        "id": 11,
+        "name": "Joel",
+        "username": "jcardenas",
+        "surname": "Cardenas Ca\u00f1ari",
+        "email": "jcardenas@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "ovOgvy2Gf0OuUYKOhBJmklvoFZuH1P8iUaCMHmFf",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:05:44.000000Z",
+        "updated_at": "2025-11-03T23:07:11.000000Z",
+        "is_active": false,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 10,
+                "area": "Analista Acred02",
+                "pivot": {
+                    "user_id": 11,
+                    "area_id": 10
+                }
+            }
+        ]
+    },
+    {
+        "id": 12,
+        "name": "Natalia",
+        "username": "nramirez",
+        "surname": "Ramirez Quispe",
+        "email": "nramirez@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "QmepNjMmDbHLT6Cv5GS07OSx2l2JSI4PMgk32u48",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:07:57.000000Z",
+        "updated_at": "2024-10-18T15:07:57.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 24,
+                "area": "Analista Acred04",
+                "pivot": {
+                    "user_id": 12,
+                    "area_id": 24
+                }
+            }
+        ]
+    },
+    {
+        "id": 13,
+        "name": "Lidia",
+        "username": "lramos",
+        "surname": "Ramos Pacheco",
+        "email": "lramos@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "oqyWaPzIc27yGmU0ewGfX1uYf1Iryp9H5kEzlcJX",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:08:44.000000Z",
+        "updated_at": "2024-10-18T15:08:44.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 25,
+                "area": "Analista Acred05",
+                "pivot": {
+                    "user_id": 13,
+                    "area_id": 25
+                }
+            }
+        ]
+    },
+    {
+        "id": 14,
+        "name": "William",
+        "username": "wtrujillo",
+        "surname": "Trujillo Salas",
+        "email": "wtrujillo@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "qmslgfoLkn67n7TbsTNj5Ltj249A7mWI11A8w3f6",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:11:00.000000Z",
+        "updated_at": "2025-11-10T16:24:25.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 48,
+                "area": "Promotor\/recuperador",
+                "pivot": {
+                    "user_id": 14,
+                    "area_id": 48
+                }
+            }
+        ]
+    },
+    {
+        "id": 15,
+        "name": "Fani",
+        "username": "fmontes",
+        "surname": "Montes Villa",
+        "email": "fmontes@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "1wPJzaAJbcdDY5U7IolAn3bizcVzQS9XECUDGwVi",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:11:33.000000Z",
+        "updated_at": "2024-10-18T15:11:33.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 23,
+                "area": "Analista Acred03",
+                "pivot": {
+                    "user_id": 15,
+                    "area_id": 23
+                }
+            }
+        ]
+    },
+    {
+        "id": 16,
+        "name": "Luz",
+        "username": "lsilvera",
+        "surname": "Silvera Salazar",
+        "email": "lsilvera@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "3OBxvHjkWSTc0APxbZr36HAcouOOZ7T4nlVs9sAw",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:20:09.000000Z",
+        "updated_at": "2024-10-18T15:20:09.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 20,
+                "area": "Tesorer\u00eda \/ Rr.hh.",
+                "pivot": {
+                    "user_id": 16,
+                    "area_id": 20
+                }
+            }
+        ]
+    },
+    {
+        "id": 17,
+        "name": "Yanet Corina",
+        "username": "yarango",
+        "surname": "Arango Lizarme",
+        "email": "contabilidad@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "dO3cALCy0hBESJRVuKLAwXJynrCAiVusTWAOF0jC",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": true,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:21:24.000000Z",
+        "updated_at": "2025-08-18T14:39:28.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 3,
+                "area": "Contabilidad Adea",
+                "pivot": {
+                    "user_id": 17,
+                    "area_id": 3
+                }
+            }
+        ]
+    },
+    {
+        "id": 18,
+        "name": "Jhair",
+        "username": "jcabanillas",
+        "surname": "Cabanillas Bardales",
+        "email": "asist.contabilidad@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "52HijfLmAN0iX6NYpJ2r9rOD8cbvKNNtubiaaWoF",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:24:34.000000Z",
+        "updated_at": "2025-06-18T14:44:04.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 4,
+                "area": "Asist. Contabilidad \/ Patrimonio",
+                "pivot": {
+                    "user_id": 18,
+                    "area_id": 4
+                }
+            }
+        ]
+    },
+    {
+        "id": 19,
+        "name": "Yesica",
+        "username": "ysaccaco",
+        "surname": "Saccaco Caceres",
+        "email": "ysaccaco@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "lUakGNlaWsUUrL26k8I3V7NRPN1xkjgqzJhlKjol",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": true,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:28:03.000000Z",
+        "updated_at": "2025-10-28T16:16:38.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 21,
+                "area": "Sub Gerencia De Negocios",
+                "pivot": {
+                    "user_id": 19,
+                    "area_id": 21
+                }
+            }
+        ]
+    },
+    {
+        "id": 28,
+        "name": "Percy Javier",
+        "username": "pllanos",
+        "surname": "Llanos Caceres",
+        "email": "pllanos@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "9v0iZKhtcjYuhAa76jc7F2kDHhlLb6qedbR77B1k",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:55:40.000000Z",
+        "updated_at": "2025-11-07T23:10:13.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 10,
+                "area": "Analista Acred02",
+                "pivot": {
+                    "user_id": 28,
+                    "area_id": 10
+                }
+            }
+        ]
+    },
+    {
+        "id": 35,
+        "name": "Jos\u00e9 Luis",
+        "username": "japarco",
+        "surname": "Aparco Loayza",
+        "email": "soporte.sistemas@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "0FS97PzOXt48RzeRg7freGXkuAYMMK628Fq28Uuy",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-23T17:32:28.000000Z",
+        "updated_at": "2025-07-16T15:46:19.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 5,
+                "area": "Tecnologias De La Informacion Y Seguridad",
+                "pivot": {
+                    "user_id": 35,
+                    "area_id": 5
+                }
+            }
+        ]
+    },
+    {
+        "id": 39,
+        "name": "Richar",
+        "username": "rcopacondori",
+        "surname": "Copacondori Quispe",
+        "email": "promotorsde02@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "Qs9NYkAF8DJwiYmvweBh1moKKL6M8EehxFa3LtUD",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-11-12T14:26:43.000000Z",
+        "updated_at": "2024-11-13T20:31:31.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 22,
+                "area": "Servicio De Desarrollo Empresarial",
+                "pivot": {
+                    "user_id": 39,
+                    "area_id": 22
+                }
+            },
+            {
+                "id": 47,
+                "area": "Sub Gerencia De Administraci\u00f3n",
+                "pivot": {
+                    "user_id": 39,
+                    "area_id": 47
+                }
+            }
+        ]
+    },
+    {
+        "id": 40,
+        "name": "Fidel Felix",
+        "username": "freynaga",
+        "surname": "Reynaga Medina",
+        "email": "gerencia@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "cvelS84xz9XCJ5XO7YBKfWR497AIa0MC77lobKtw",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": true,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-02-06T15:26:07.000000Z",
+        "updated_at": "2025-08-15T03:58:24.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 2,
+                "area": "Gerencia",
+                "pivot": {
+                    "user_id": 40,
+                    "area_id": 2
+                }
+            }
+        ]
+    },
+    {
+        "id": 43,
+        "name": "Flor de Maria",
+        "username": "fherrera",
+        "surname": "Herrera Maldonado",
+        "email": "fherrera@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "7cD5iEuHFJzHsJmtm1IdfDs8RDu4VGXvFhTxm2k1",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-06-18T17:13:59.000000Z",
+        "updated_at": "2025-06-18T17:13:59.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 22,
+                "area": "Servicio De Desarrollo Empresarial",
+                "pivot": {
+                    "user_id": 43,
+                    "area_id": 22
+                }
+            }
+        ]
+    },
+    {
+        "id": 44,
+        "name": "Ruth",
+        "username": "rsayaverde",
+        "surname": "Sayaverde Ramirez",
+        "email": null,
+        "email_verified_at": null,
+        "api_token": "yxQf2bXR207vGFWQD3OOxEOLyRchWuWuDnxAdwIB",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-06-20T22:07:44.000000Z",
+        "updated_at": "2025-12-31T15:55:43.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 23,
+                "area": "Analista Acred03",
+                "pivot": {
+                    "user_id": 44,
+                    "area_id": 23
+                }
+            },
+            {
+                "id": 23,
+                "area": "Analista Acred03",
+                "pivot": {
+                    "user_id": 44,
+                    "area_id": 23
+                }
+            }
+        ]
+    },
+    {
+        "id": 45,
+        "name": "Willian",
+        "username": "woscco",
+        "surname": "Oscco Umeres",
+        "email": null,
+        "email_verified_at": null,
+        "api_token": "YpnskoPhCxlotAWcQyLNBO5AEnCrWXFMKZXUHguU",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-06-21T15:21:15.000000Z",
+        "updated_at": "2025-06-21T15:21:15.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 11,
+                "area": "Chofer",
+                "pivot": {
+                    "user_id": 45,
+                    "area_id": 11
+                }
+            }
+        ]
+    },
+    {
+        "id": 47,
+        "name": "Raul",
+        "username": "rsiancas",
+        "surname": "Siancas Huaccaycachacc",
+        "email": null,
+        "email_verified_at": null,
+        "api_token": "UBXi31sqJ9KegIRqbbqnBoGPhHdA4GnwlNBH6Qgm",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-08-08T22:50:52.000000Z",
+        "updated_at": "2025-08-08T22:50:52.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 22,
+                "area": "Servicio De Desarrollo Empresarial",
+                "pivot": {
+                    "user_id": 47,
+                    "area_id": 22
+                }
+            }
+        ]
+    },
+    {
+        "id": 49,
+        "name": "Sabino",
+        "username": "savenda\u00f1o",
+        "surname": "Avenda\u00f1o Torres",
+        "email": null,
+        "email_verified_at": null,
+        "api_token": "CUsOWWSE6SmaNiV0Deu8jjr1RErDFUXyGwjyp1J6",
+        "agency_id": 1,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-11-27T21:30:47.000000Z",
+        "updated_at": "2025-11-27T21:30:47.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 1,
+            "name": "Andahuaylas"
+        },
+        "areas": [
+            {
+                "id": 49,
+                "area": "Conserje",
+                "pivot": {
+                    "user_id": 49,
+                    "area_id": 49
+                }
+            }
+        ]
+    },
+    {
+        "id": 21,
+        "name": "Manuel",
+        "username": "mpunil",
+        "surname": "Punil Sulca",
+        "email": "mpunil@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "at3yNPzEj9iiabPaPGH5IiucLQDLMeD2g6ewcKlp",
+        "agency_id": 2,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:35:56.000000Z",
+        "updated_at": "2024-10-18T15:35:56.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 2,
+            "name": "Uripa"
+        },
+        "areas": [
+            {
+                "id": 37,
+                "area": "Administrador De Agencia Uripa",
+                "pivot": {
+                    "user_id": 21,
+                    "area_id": 37
+                }
+            }
+        ]
+    },
+    {
+        "id": 22,
+        "name": "Eden",
+        "username": "egamboa",
+        "surname": "Gamboa Gamboa",
+        "email": "egamboa@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "AEgID71G6oMOL9IyzcRBye4UjVvolYcTVyl9KrJ1",
+        "agency_id": 2,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:38:28.000000Z",
+        "updated_at": "2024-10-18T15:38:28.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 2,
+            "name": "Uripa"
+        },
+        "areas": [
+            {
+                "id": 29,
+                "area": "Analista Acred09",
+                "pivot": {
+                    "user_id": 22,
+                    "area_id": 29
+                }
+            }
+        ]
+    },
+    {
+        "id": 23,
+        "name": "Sergio",
+        "username": "shuanca",
+        "surname": "Huanca Ccasani",
+        "email": "shuanca@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "2J9uevgYjDsMBaDYPLxXYFi0QHbTDZjhzQIQ7Swv",
+        "agency_id": 2,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:40:06.000000Z",
+        "updated_at": "2024-10-18T15:40:06.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 2,
+            "name": "Uripa"
+        },
+        "areas": [
+            {
+                "id": 28,
+                "area": "Analista Acred08",
+                "pivot": {
+                    "user_id": 23,
+                    "area_id": 28
+                }
+            }
+        ]
+    },
+    {
+        "id": 24,
+        "name": "Rene Yeny",
+        "username": "raquise",
+        "surname": "Aquise Mendoza",
+        "email": "cajauripa@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "l7Z0d35YzsZDnWzR9A2pUWKLfEvrPeap1eJ3TsRb",
+        "agency_id": 2,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:45:15.000000Z",
+        "updated_at": "2024-10-18T15:45:15.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 2,
+            "name": "Uripa"
+        },
+        "areas": [
+            {
+                "id": 39,
+                "area": "Recibidor\/pagador Uripa",
+                "pivot": {
+                    "user_id": 24,
+                    "area_id": 39
+                }
+            },
+            {
+                "id": 43,
+                "area": "Mesa De Partes Uripa",
+                "pivot": {
+                    "user_id": 24,
+                    "area_id": 43
+                }
+            }
+        ]
+    },
+    {
+        "id": 25,
+        "name": "Jhury Jhurchs",
+        "username": "jpalomino",
+        "surname": "Palomino Medina",
+        "email": "jpalomino@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "YJekuwpXuBtbZ73SIQPwYrPuBbyuz9dbn5RRZmuP",
+        "agency_id": 2,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:46:52.000000Z",
+        "updated_at": "2024-10-18T15:46:52.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 2,
+            "name": "Uripa"
+        },
+        "areas": [
+            {
+                "id": 36,
+                "area": "Analista Acred20",
+                "pivot": {
+                    "user_id": 25,
+                    "area_id": 36
+                }
+            }
+        ]
+    },
+    {
+        "id": 26,
+        "name": "Miguel Angel",
+        "username": "mpillaca",
+        "surname": "Pillaca Huarhuachi",
+        "email": "mpillaca@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "K6PJUfOLLCrzI2k2moFW9rPS4oIk3wjf779YFdkn",
+        "agency_id": 2,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:47:58.000000Z",
+        "updated_at": "2024-10-18T15:47:58.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 2,
+            "name": "Uripa"
+        },
+        "areas": [
+            {
+                "id": 33,
+                "area": "Analista Acred17",
+                "pivot": {
+                    "user_id": 26,
+                    "area_id": 33
+                }
+            }
+        ]
+    },
+    {
+        "id": 42,
+        "name": "Maria de los Angeles",
+        "username": "apillaca",
+        "surname": "Pillaca Huarhuachi",
+        "email": null,
+        "email_verified_at": null,
+        "api_token": "DcAXLAqhKrlCQanfTAGJt5IvgXkZjCFE6IUxLGOr",
+        "agency_id": 2,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-06-17T17:36:06.000000Z",
+        "updated_at": "2025-06-17T17:36:06.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 2,
+            "name": "Uripa"
+        },
+        "areas": [
+            {
+                "id": 43,
+                "area": "Mesa De Partes Uripa",
+                "pivot": {
+                    "user_id": 42,
+                    "area_id": 43
+                }
+            },
+            {
+                "id": 39,
+                "area": "Recibidor\/pagador Uripa",
+                "pivot": {
+                    "user_id": 42,
+                    "area_id": 39
+                }
+            }
+        ]
+    },
+    {
+        "id": 51,
+        "name": "pablo",
+        "username": "pablo",
+        "surname": "santiago",
+        "email": null,
+        "email_verified_at": null,
+        "api_token": "tPj3KdpqPXFnqyMtVUVc4Pl7iapaDja2EnPM6Rnj",
+        "agency_id": 2,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-12-30T02:57:23.000000Z",
+        "updated_at": "2025-12-30T02:57:23.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 2,
+            "name": "Uripa"
+        },
+        "areas": [
+            {
+                "id": 43,
+                "area": "Mesa De Partes Uripa",
+                "pivot": {
+                    "user_id": 51,
+                    "area_id": 43
+                }
+            }
+        ]
+    },
+    {
+        "id": 27,
+        "name": "Jesus",
+        "username": "jpariona",
+        "surname": "Pariona Quispe",
+        "email": "jpariona@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "rW3oNbxPuL6dejmbubT0aZyFZxrAeoAGrdOyjCpQ",
+        "agency_id": 3,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:54:30.000000Z",
+        "updated_at": "2024-10-18T15:54:30.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 3,
+            "name": "Huancaray"
+        },
+        "areas": [
+            {
+                "id": 41,
+                "area": "Recibidor\/pagador Huancaray",
+                "pivot": {
+                    "user_id": 27,
+                    "area_id": 41
+                }
+            },
+            {
+                "id": 44,
+                "area": "Mesa De Partes Huancaray",
+                "pivot": {
+                    "user_id": 27,
+                    "area_id": 44
+                }
+            }
+        ]
+    },
+    {
+        "id": 50,
+        "name": "Ivan Anthony",
+        "username": "icrisoles",
+        "surname": "Crisoles Matute",
+        "email": "icrisoles@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "8u3XHOwUuzJSlOIjCyci1zTEqbg40m0EPODzPZRP",
+        "agency_id": 3,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-12-03T14:42:47.000000Z",
+        "updated_at": "2025-12-03T14:42:47.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 3,
+            "name": "Huancaray"
+        },
+        "areas": [
+            {
+                "id": 32,
+                "area": "Analista Acred12",
+                "pivot": {
+                    "user_id": 50,
+                    "area_id": 32
+                }
+            }
+        ]
+    },
+    {
+        "id": 29,
+        "name": "Henry",
+        "username": "hnaveros",
+        "surname": "Naveros Vargas",
+        "email": "hnaveros@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "XlzzymP15NQ04ileuFXJzB2T2aGeIdZZjTKArAFV",
+        "agency_id": 4,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:56:41.000000Z",
+        "updated_at": "2024-10-18T15:56:41.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 4,
+            "name": "Huancarama"
+        },
+        "areas": [
+            {
+                "id": 38,
+                "area": "Administrador De Agencia Huancarama",
+                "pivot": {
+                    "user_id": 29,
+                    "area_id": 38
+                }
+            }
+        ]
+    },
+    {
+        "id": 30,
+        "name": "Yaselyn",
+        "username": "yvelasque",
+        "surname": "Velasque Carrasco",
+        "email": "yavelasque@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "wkLYNbkRcoPdsRnzdujPSjHZwcIT6m8QZeK0o2Kp",
+        "agency_id": 4,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:58:05.000000Z",
+        "updated_at": "2024-10-18T15:58:05.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 4,
+            "name": "Huancarama"
+        },
+        "areas": [
+            {
+                "id": 40,
+                "area": "Recibidor\/pagador Huancarama",
+                "pivot": {
+                    "user_id": 30,
+                    "area_id": 40
+                }
+            },
+            {
+                "id": 45,
+                "area": "Mesa De Partes Huancarama",
+                "pivot": {
+                    "user_id": 30,
+                    "area_id": 45
+                }
+            }
+        ]
+    },
+    {
+        "id": 31,
+        "name": "Yanina",
+        "username": "yayala",
+        "surname": "Ayala Vargas",
+        "email": "yayala@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "LBxIa1Nk6b2d55BjvBP3kM0hGIYI3dVPOLdNF2A0",
+        "agency_id": 4,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T15:58:59.000000Z",
+        "updated_at": "2024-10-18T15:58:59.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 4,
+            "name": "Huancarama"
+        },
+        "areas": [
+            {
+                "id": 30,
+                "area": "Analista Acred10",
+                "pivot": {
+                    "user_id": 31,
+                    "area_id": 30
+                }
+            }
+        ]
+    },
+    {
+        "id": 32,
+        "name": "Alex",
+        "username": "acespedes",
+        "surname": "Cespedes Ancco",
+        "email": "aancco@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "mafb0WqaHE9DoZELFe1heawcC1fqXgBpca8Pr5i0",
+        "agency_id": 4,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T16:00:55.000000Z",
+        "updated_at": "2024-10-18T16:00:55.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 4,
+            "name": "Huancarama"
+        },
+        "areas": [
+            {
+                "id": 31,
+                "area": "Analista Acred11",
+                "pivot": {
+                    "user_id": 32,
+                    "area_id": 31
+                }
+            }
+        ]
+    },
+    {
+        "id": 33,
+        "name": "Deyssi Rosseo",
+        "username": "dquispe",
+        "surname": "Quispe Allcca",
+        "email": "cajaabancay@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "36YQhvdGLmELRsluvevdRydlq9KCPT6Xlv4ZQGax",
+        "agency_id": 5,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T16:01:58.000000Z",
+        "updated_at": "2025-06-16T19:56:59.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 5,
+            "name": "Abancay"
+        },
+        "areas": [
+            {
+                "id": 42,
+                "area": "Recibidor\/pagador Abancay",
+                "pivot": {
+                    "user_id": 33,
+                    "area_id": 42
+                }
+            },
+            {
+                "id": 46,
+                "area": "Mesa De Partes Abancay",
+                "pivot": {
+                    "user_id": 33,
+                    "area_id": 46
+                }
+            }
+        ]
+    },
+    {
+        "id": 34,
+        "name": "Edgar",
+        "username": "ehuaman",
+        "surname": "Huaman Quintana",
+        "email": "ehuaman@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "lnsnXF48VcShqL3bVUI0nOwik9zwsM3BcLrXoCpU",
+        "agency_id": 5,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2024-10-18T16:02:43.000000Z",
+        "updated_at": "2024-10-18T16:02:43.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 5,
+            "name": "Abancay"
+        },
+        "areas": [
+            {
+                "id": 35,
+                "area": "Analista Acred19",
+                "pivot": {
+                    "user_id": 34,
+                    "area_id": 35
+                }
+            }
+        ]
+    },
+    {
+        "id": 41,
+        "name": "Yudiza",
+        "username": "ycontreras",
+        "surname": "Contreras Carrion",
+        "email": "ycontreras@adea.org.pe",
+        "email_verified_at": null,
+        "api_token": "q3RqQHZj9pQvXI4gwGsNRhz0BPSkFqo5JfyrqdMT",
+        "agency_id": 5,
+        "role": "user",
+        "view_checkboxes": false,
+        "is_finalizar_tramite": false,
+        "is_annul_historico": false,
+        "created_at": "2025-06-16T20:00:02.000000Z",
+        "updated_at": "2025-06-16T20:00:02.000000Z",
+        "is_active": true,
+        "agency": {
+            "id": 5,
+            "name": "Abancay"
+        },
+        "areas": [
+            {
+                "id": 34,
+                "area": "Analista Acred18",
+                "pivot": {
+                    "user_id": 41,
+                    "area_id": 34
+                }
+            }
+        ]
+    }
+]
+
