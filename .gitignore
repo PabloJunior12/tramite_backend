@@ -12,7 +12,7 @@ staticfiles/
 deploy/
 
 # Configuración de Django (ignorar settings.py)
-#settings.py
+settings.py
 
 
 # Archivos de configuración del editor

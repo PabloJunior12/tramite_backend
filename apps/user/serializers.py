@@ -4,6 +4,21 @@ from apps.tramite.serializers import UserAreaSerializer
 from apps.tramite.models import UserArea
 from .models import User, Module, UserPermission, GlobalPermission
 
+class ChangePasswordSerializer(serializers.Serializer):
+
+    password = serializers.CharField(
+        write_only=True,
+        min_length=6
+    )
+    confirm = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        if data['password'] != data['confirm']:
+            raise serializers.ValidationError({
+                "confirm": "Las contraseñas no coinciden"
+            })
+        return data
+
 class ModuleSerializer(serializers.ModelSerializer):
 
     children = serializers.SerializerMethodField()

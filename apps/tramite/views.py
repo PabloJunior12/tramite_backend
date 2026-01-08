@@ -392,6 +392,22 @@ class UpdateProcedureCopiesAPIView(APIView):
             flow_type=ProcedureFlow.COPY
         ).delete()
 
+        # 🔴 VALIDACIÓN DE HORARIO (NUEVO)
+        schedule_status = check_schedule(timezone.now())    
+
+        if schedule_status == ScheduleResult.NO_LABORABLE:
+
+           return Response({"error": "Estimado usuario el registro de trámites no está disponible los domingos ni feriados."},status=status.HTTP_400_BAD_REQUEST)
+
+        # DEFINIR ESTADO INICIAL DEL FLOW
+        flow_status = ProcedureFlow.SENT
+        registered_out_of_schedule_at = None
+
+        if schedule_status == ScheduleResult.OUT_OF_SCHEDULE:
+
+            flow_status = ProcedureFlow.PENDING_SCHEDULE
+            registered_out_of_schedule_at = timezone.now()
+
         # ✅ Crear nuevas copias
         for area in new_areas:
             ProcedureFlow.objects.create(
@@ -400,14 +416,28 @@ class UpdateProcedureCopiesAPIView(APIView):
                 from_area=procedure.from_area,
                 sent_by=request.user,
                 flow_type=ProcedureFlow.COPY,
-                status=ProcedureFlow.SENT,
+                status=flow_status,
                 is_active=True,
                 subject=procedure.subject,
-                sequence = 1 
+                sequence = 1,
+                registered_out_of_schedule_at=registered_out_of_schedule_at
             )
 
+        # 🟢 MENSAJE GLOBAL (UNO SOLO)
+        if flow_status == ProcedureFlow.PENDING_SCHEDULE:
+            message = (
+                "Las copias del trámite fueron registradas fuera del horario laboral "
+                "y serán procesadas automáticamente el siguiente día hábil "
+                "en el horario de atención."
+            )
+        else:
+            message = "Las copias del trámite fueron registradas exitosamente."
+
         return Response(
-            {"message": "Copies updated successfully"},
+            {
+                "message": message,
+                "status": flow_status
+            },
             status=status.HTTP_200_OK
         )
 

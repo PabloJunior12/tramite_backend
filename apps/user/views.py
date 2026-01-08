@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
-from .serializers import UserSerializer, ModuleSerializer, UserPermissionSerializer, UserToggleSerializer
+from .serializers import UserSerializer, ModuleSerializer, UserPermissionSerializer, UserToggleSerializer, ChangePasswordSerializer
 from .models import User, Module, UserPermission
 from apps.tramite.models import UserArea
 from .services import get_allowed_modules
@@ -200,6 +200,27 @@ class UserViewSet(ModelViewSet):
         # 🧩 Cualquier otro caso
         return User.objects.none()
     
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[IsAuthenticated]
+    )
+    def change_password(self, request, pk=None):
+
+        user = self.get_object()
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # 🔐 set_password SIEMPRE
+        user.set_password(serializer.validated_data['password'])
+        user.save()
+
+        return Response(
+            {"message": "Contraseña actualizada correctamente"},
+            status=status.HTTP_200_OK
+        )
 
     @action(detail=True, methods=["patch"])
     def toggles(self, request, pk=None):
@@ -221,6 +242,26 @@ class UserViewSet(ModelViewSet):
         serializer.save()
 
         return Response(serializer.data)
+
+class ChangeMyPasswordView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        user = request.user  # 👈 viene del token
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(serializer.validated_data['password'])
+        user.save()
+
+        return Response(
+            {"message": "Contraseña actualizada correctamente"},
+            status=status.HTTP_200_OK
+        )
 
 class ModuleViewSet(ModelViewSet):
 

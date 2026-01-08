@@ -12,6 +12,14 @@ import os
 import random
 from io import BytesIO
 
+def resolve_sequence_agency(destination_area: Area) -> Agency:
+    main_agency = Agency.objects.get(id=settings.MAIN_AGENCY_ID)
+
+    if destination_area.agency_id == main_agency.id:
+        return main_agency
+
+    return destination_area.agency
+
 def generate_procedure_code(agency: Agency) -> str:
     year = timezone.now().year
 

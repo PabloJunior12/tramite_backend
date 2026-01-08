@@ -13,7 +13,7 @@ from .models import (
 
 )
 
-from .utils import generate_procedure_code, get_next_sequence, get_virtual_areas, check_schedule, ScheduleResult, generate_unique_tracking_code
+from .utils import generate_procedure_code, get_next_sequence, get_virtual_areas, resolve_sequence_agency, check_schedule, ScheduleResult, generate_unique_tracking_code
     
 
 import os
@@ -207,9 +207,9 @@ class ProcedureCreateSerializer(serializers.Serializer):
         required=False
     )
     # Destino
-    agency = serializers.PrimaryKeyRelatedField(
-        queryset=Agency.objects.all()
-    )
+    # agency = serializers.PrimaryKeyRelatedField(
+    #     queryset=Agency.objects.all()
+    # )
     destination_areas = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(
             queryset=Area.objects.all()
@@ -254,7 +254,7 @@ class ProcedureCreateSerializer(serializers.Serializer):
         request = self.context["request"]
         is_virtual = validated_data.get("is_virtual", False)
         files = request.FILES.getlist("files")
-        agency = validated_data["agency"]
+        # agency = validated_data["agency"]
 
         # 🔴 VALIDACIÓN DE HORARIO (NUEVO)
         schedule_status = check_schedule(now())
@@ -263,6 +263,7 @@ class ProcedureCreateSerializer(serializers.Serializer):
            raise serializers.ValidationError({
               "error": "Estimado usuario el registro de trámites no está disponible los domingos ni feriados."
            })
+        
         # 🟡 DEFINIR ESTADO INICIAL DEL FLOW
         flow_status = ProcedureFlow.SENT
         registered_out_of_schedule_at = None
@@ -294,11 +295,14 @@ class ProcedureCreateSerializer(serializers.Serializer):
         for area in destination_areas:
 
             #  Código correlativo (TU CÓDIGO)
-            code = generate_procedure_code(agency)
+            sequence_agency = resolve_sequence_agency(area)
 
-            # 🧾 Crear trámite (TU CÓDIGO)
+            code = generate_procedure_code(sequence_agency)
+
+            # Crear trámite (TU CÓDIGO)
             procedure = Procedure.objects.create(
                 code=code,
+                agency=sequence_agency, 
                 created_by=user,
                 from_area=from_area,
                 to_area=area,
@@ -328,20 +332,6 @@ class ProcedureCreateSerializer(serializers.Serializer):
                     procedure=procedure,
                     file=file,
                     uploaded_by=user
-                )
-
-            # 📎 Copias (TU CÓDIGO)
-            for copy_area in copy_areas:
-                ProcedureFlow.objects.create(
-                    procedure=procedure,
-                    to_area=copy_area,
-                    sent_by=user,
-                    sequence=sequence,
-                    subject=procedure.subject,
-                    from_area=procedure.from_area,
-                    flow_type=ProcedureFlow.COPY,
-                    status=flow_status,   # 🟡 MISMO ESTADO
-                    is_active=True
                 )
 
             created.append(procedure)
@@ -451,7 +441,7 @@ class ProcedureListSerializer(serializers.ModelSerializer):
     from_area = AreaSerializer()
     to_area = AreaSerializer()
     document_type = DocumentSerializer()
-
+    agency = AgencySerializer()
     copies = serializers.SerializerMethodField()  # 👈 CLAVE
 
     class Meta:

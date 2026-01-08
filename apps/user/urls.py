@@ -1,6 +1,6 @@
 from rest_framework import routers
 from django.urls import path
-from .views import LoginView, LogoutView, ProtectedView, MeView,RucApiView, DniApiView, UserViewSet, ModuleViewSet, UserPermissionViewSet
+from .views import LoginView, ChangeMyPasswordView, LogoutView, ProtectedView, MeView,RucApiView, DniApiView, UserViewSet, ModuleViewSet, UserPermissionViewSet
 
 router = routers.DefaultRouter()
 router.register("users", UserViewSet)
@@ -11,6 +11,7 @@ router.register('user-permissions', UserPermissionViewSet)
 urlpatterns = [
 
     path('login/', LoginView.as_view(), name='login'),
+    path("change-password/", ChangeMyPasswordView.as_view()),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('protected/', ProtectedView.as_view(), name='protected'),
     path('ruc/<str:number>', RucApiView.as_view(), name='user-ruc'),
