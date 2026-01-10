@@ -294,15 +294,23 @@ class ProcedureCreateSerializer(serializers.Serializer):
 
         for area in destination_areas:
 
-            #  Código correlativo (TU CÓDIGO)
-            sequence_agency = resolve_sequence_agency(area)
+            origin_agency = from_area.agency
+            destination_agency = area.agency
+            main_agency = Agency.objects.get(id=settings.MAIN_AGENCY_ID)
 
-            code = generate_procedure_code(sequence_agency)
+            # 🟢 Código origen (SIEMPRE)
+            code = generate_procedure_code(origin_agency)
 
-            # Crear trámite (TU CÓDIGO)
+            code_destino = None
+
+            # 🔴 SOLO si va hacia Andahuaylas desde otra agencia
+            if destination_agency.id == main_agency.id and origin_agency.id != main_agency.id:
+                code_destino = generate_procedure_code(main_agency)
+
             procedure = Procedure.objects.create(
                 code=code,
-                agency=sequence_agency, 
+                code_destino=code_destino,
+                agency=origin_agency,
                 created_by=user,
                 from_area=from_area,
                 to_area=area,

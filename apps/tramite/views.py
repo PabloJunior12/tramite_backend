@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Q
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from weasyprint import HTML
@@ -15,7 +15,7 @@ from django.db import transaction, models
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from .utils import generar_qr_base64, ProcedureFilter, send_procedure_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
-
+from django.conf import settings
 class CustomPagination(PageNumberPagination):
 
     page_size = 5  # Número de registros por página
@@ -452,6 +452,7 @@ class VirtualFlowListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
 
+        agency_id = self.request.query_params.get("agency")
         code = self.request.query_params.get("code")
         tracking_code = self.request.query_params.get("tracking_code")
         flow_type = self.request.query_params.get("type")  # TV | TE | TI
@@ -473,7 +474,13 @@ class VirtualFlowListAPIView(generics.ListAPIView):
 
         # 🔐 Búsqueda interna
         if code:
-            qs = qs.filter(procedure__code=code)
+            if not agency_id:
+                return ProcedureFlow.objects.none()
+
+            qs = qs.filter(
+                procedure__code=code,
+                procedure__agency_id=agency_id
+            )
 
         # 🌐 Búsqueda pública (solo virtual)
         if tracking_code:
@@ -600,13 +607,36 @@ class FinalizeFlowListAPIView(generics.ListAPIView):
         if not area_id:
             return ProcedureFlow.objects.none()
 
-        return (
+        # Área actual
+        try:
+            area = Area.objects.select_related("agency").get(id=area_id)
+        except Area.DoesNotExist:
+            return ProcedureFlow.objects.none()
+
+        qs = (
             ProcedureFlow.objects
             .filter(
-                to_area_id=area_id,
                 flow_type=ProcedureFlow.NORMAL,
                 status=ProcedureFlow.FINALIZED,
                 is_active=True
+            )
+        )
+
+        # 🔵 Mesa de Partes ANDAHUAYLAS → ve TODOS
+        if area.type == "TE" and area.agency_id == settings.MAIN_AGENCY_ID:
+            return (
+                qs
+                .select_related("procedure", "from_area")
+                .order_by("-created_at")
+            )
+
+
+        # 🟢 CASO 2: Otras agencias
+        return (
+            qs
+            .filter(
+                Q(to_area_id=area_id) |                 # Finalizados en su área
+                Q(procedure__agency=area.agency)        # O trámites de su agencia
             )
             .select_related("procedure", "from_area")
             .order_by("-created_at")

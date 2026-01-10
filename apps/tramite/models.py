@@ -196,6 +196,14 @@ class Procedure(models.Model):
         db_index=True
     )
 
+    # 👇 NUEVO (opcional)
+    code_destino = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text="Código original de la agencia de origen"
+    )
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
