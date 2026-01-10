@@ -14,7 +14,7 @@ from weasyprint import HTML
 from django.db import transaction, models
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
-from .utils import generar_qr_base64, send_procedure_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
+from .utils import generar_qr_base64, ProcedureFilter, send_procedure_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
 
 class CustomPagination(PageNumberPagination):
 
@@ -327,18 +327,17 @@ class ProcedureListAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureListSerializer
     pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProcedureFilter
 
     def get_queryset(self):
 
         area = self.get_active_area()
 
         return (
-            Procedure.objects.filter(
-                 from_area=area
-           
-        )
+            Procedure.objects.filter(from_area=area)
             .prefetch_related("files", "to_area")
-            .order_by("-code")
+            .order_by("-created_at")
         )
 
     def get_serializer_context(self):

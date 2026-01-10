@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.utils.timezone import localtime
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-
+import django_filters
 from .models import Agency, ProcedureSequence, ProcedureFlow, Area, WorkSchedule, Holiday, Procedure
 from datetime import datetime, time
 import qrcode
@@ -11,6 +11,39 @@ import base64
 import os
 import random
 from io import BytesIO
+
+class ProcedureFilter(django_filters.FilterSet):
+
+    # code exacto o parcial
+    code = django_filters.CharFilter(
+        field_name="code",
+        lookup_expr="icontains"
+    )
+
+    # nombre del remitente
+    sender_name = django_filters.CharFilter(
+        field_name="sender_name",
+        lookup_expr="icontains"
+    )
+
+    # fechas
+    date_from = django_filters.DateFilter(
+        field_name="created_at",
+        lookup_expr="date__gte"
+    )
+    date_to = django_filters.DateFilter(
+        field_name="created_at",
+        lookup_expr="date__lte"
+    )
+
+    class Meta:
+        model = Procedure
+        fields = [
+            "code",
+            "sender_name",
+            "date_from",
+            "date_to",
+        ]
 
 def resolve_sequence_agency(destination_area: Area) -> Agency:
     main_agency = Agency.objects.get(id=settings.MAIN_AGENCY_ID)
