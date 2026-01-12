@@ -440,6 +440,38 @@ class UpdateProcedureCopiesAPIView(APIView):
             status=status.HTTP_200_OK
         )
 
+class CopyDecisionAPIView(APIView):
+
+    @transaction.atomic
+    def put(self, request, pk):
+
+        decision = request.data.get("decision")  # approved | rejected
+        comment = request.data.get("comment", "")
+
+        flow = get_object_or_404(ProcedureFlow, pk=pk)
+
+        if flow.status != ProcedureFlow.SENT:
+            return Response(
+                {"error": "La copia ya fue atendida"},
+                status=400
+            )
+
+        if decision == "approved":
+            flow.status = ProcedureFlow.RECEIVED
+        elif decision == "rejected":
+            flow.status = ProcedureFlow.REJECTED
+        else:
+            return Response(
+                {"error": "Decisión inválida"},
+                status=400
+            )
+
+        flow.comment = comment
+        flow.save(update_fields=["status", "comment"])
+
+        return Response({"success": True})
+
+
 # ----------- LIST MOVIMIENTOS
 
 class VirtualFlowListAPIView(generics.ListAPIView):
@@ -469,6 +501,7 @@ class VirtualFlowListAPIView(generics.ListAPIView):
                 "to_area",
                 "sent_by"
             )
+            .exclude(status=ProcedureFlow.PENDING_SCHEDULE)
             .order_by("sequence")
         )
 
@@ -478,7 +511,7 @@ class VirtualFlowListAPIView(generics.ListAPIView):
                 return ProcedureFlow.objects.none()
 
             qs = qs.filter(
-                procedure__code=code,
+                procedure__code__icontains=code,
                 procedure__agency_id=agency_id
             )
 
@@ -510,7 +543,7 @@ class PendingFlowListAPIView(generics.ListAPIView):
             ProcedureFlow.objects
             .filter(
                 to_area_id=area_id,
-                flow_type=ProcedureFlow.NORMAL,
+                # flow_type=ProcedureFlow.NORMAL,
                 status=ProcedureFlow.SENT,
                 is_active=True
             )
@@ -567,7 +600,7 @@ class SentFlowListAPIView(generics.ListAPIView):
         )
 
 # COPIAS
-class CopyInboxFlowListAPIView(generics.ListAPIView):
+class CopyInboxPendingAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureFlowSerializer
     pagination_class = CustomPagination
@@ -591,6 +624,30 @@ class CopyInboxFlowListAPIView(generics.ListAPIView):
                 "from_area",
                 "to_area"
             )
+            .order_by("-created_at")
+        )
+
+class CopyInboxApprovedAPIView(generics.ListAPIView):
+
+    serializer_class = ProcedureFlowSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+
+        area_id = self.request.headers.get("X-Area-Id")
+
+        if not area_id:
+            return ProcedureFlow.objects.none()
+
+        return (
+            ProcedureFlow.objects
+            .filter(
+                to_area_id=area_id,
+                flow_type=ProcedureFlow.COPY,
+                status=ProcedureFlow.RECEIVED,
+                is_active=True
+            )
+            .select_related("procedure", "from_area", "to_area")
             .order_by("-created_at")
         )
 
@@ -623,7 +680,7 @@ class FinalizeFlowListAPIView(generics.ListAPIView):
         )
 
         # 🔵 Mesa de Partes ANDAHUAYLAS → ve TODOS
-        if area.type == "TE" and area.agency_id == settings.MAIN_AGENCY_ID:
+        if area.code == '001' or area.code == '002':
             return (
                 qs
                 .select_related("procedure", "from_area")

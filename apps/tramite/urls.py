@@ -1,6 +1,6 @@
 from rest_framework import routers
 from django.urls import path
-from .views import CompanyViewSet, CheckScheduleAPIView, ProcedureHistorySimplicadoPDFAPIView, HolidayViewSet, WorkScheduleViewSet, ProcedureListVirtualesAPIView, VirtualFlowListAPIView, ProcedureVirtualCreateAPIView, UpdateProcedureCopiesAPIView, CopyInboxFlowListAPIView, TicketProcedureAPIView, ProcedureAnnulAPIView, ProcedureUpdateAPIView, SentFlowListAPIView, FlowDashboardAPIView, ProcedureHistoryPDFAPIView, ResendObservedProcedureFlowAPIView, RejectInboxAPIView, ObservedInboxAPIView, ObservedProcedureFlowAPIView, FinalizeFlowListAPIView, RejectProcedureFlowAPIView, PendingFlowListAPIView, FinalizeProcedureFlowAPIView, DeriveProcedureFlowAPIView, ReceptionFlowListAPIView, ReceiveProcedureFlowAPIView, ProcedureListAPIView, MyAreasView, AreaViewSet, DocumentViewSet, AgencyViewSet, ProcedureCreateAPIView, DepartmentListAPIView, ProvinceListAPIView, DistrictListAPIView
+from .views import CompanyViewSet, CheckScheduleAPIView, ProcedureHistorySimplicadoPDFAPIView, HolidayViewSet, WorkScheduleViewSet, ProcedureListVirtualesAPIView, VirtualFlowListAPIView, ProcedureVirtualCreateAPIView, UpdateProcedureCopiesAPIView, CopyInboxPendingAPIView, CopyInboxApprovedAPIView, TicketProcedureAPIView, ProcedureAnnulAPIView, ProcedureUpdateAPIView, SentFlowListAPIView, FlowDashboardAPIView, ProcedureHistoryPDFAPIView, ResendObservedProcedureFlowAPIView, RejectInboxAPIView, ObservedInboxAPIView, ObservedProcedureFlowAPIView, FinalizeFlowListAPIView, RejectProcedureFlowAPIView, PendingFlowListAPIView, FinalizeProcedureFlowAPIView, DeriveProcedureFlowAPIView, ReceptionFlowListAPIView, ReceiveProcedureFlowAPIView, ProcedureListAPIView, MyAreasView, AreaViewSet, DocumentViewSet, AgencyViewSet, ProcedureCreateAPIView, DepartmentListAPIView, ProvinceListAPIView, DistrictListAPIView, CopyDecisionAPIView
 
 router = routers.DefaultRouter()
 
@@ -34,7 +34,11 @@ urlpatterns = [
 
     path("copies-procedure/<int:pk>/", UpdateProcedureCopiesAPIView.as_view()),
 
-    path("copies/", CopyInboxFlowListAPIView.as_view()),
+    path("copies-pending/", CopyInboxPendingAPIView.as_view()),
+    path("copies-approved/", CopyInboxApprovedAPIView.as_view()),
+    path("copies-decision/<int:pk>/", CopyDecisionAPIView.as_view()),
+
+
     path("pending/", PendingFlowListAPIView.as_view()),
     path("reception/", ReceptionFlowListAPIView.as_view()),
     path("finalize/", FinalizeFlowListAPIView.as_view()),
