@@ -14,7 +14,7 @@ from weasyprint import HTML
 from django.db import transaction, models
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
-from .utils import generar_qr_base64, ProcedureFilter, send_procedure_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
+from .utils import generar_qr_base64, ProcedureFilter, send_procedure_email, send_procedure_rejected_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
 from django.conf import settings
 class CustomPagination(PageNumberPagination):
 
@@ -105,7 +105,7 @@ class AgencyViewSet(viewsets.ModelViewSet):
 
     authentication_classes = [] 
     permission_classes = []    
-    queryset = Agency.objects.all()
+    queryset = Agency.objects.filter(state = True).order_by('id')
     serializer_class = AgencySerializer
 
 class DocumentViewSet(viewsets.ModelViewSet):
@@ -198,6 +198,7 @@ class ProcedureVirtualCreateAPIView(APIView):
             data=request.data,
             context={"request": request}
         )
+
         serializer.is_valid(raise_exception=True)
 
         procedures = serializer.save()
@@ -210,7 +211,7 @@ class ProcedureVirtualCreateAPIView(APIView):
             .first()
         )
 
-        # 🔔 Enviar correo
+        #  Enviar correo
         send_procedure_email(
             procedure=procedure,
             is_out_of_schedule=(
@@ -448,7 +449,11 @@ class CopyDecisionAPIView(APIView):
         decision = request.data.get("decision")  # approved | rejected
         comment = request.data.get("comment", "")
 
-        flow = get_object_or_404(ProcedureFlow, pk=pk)
+        flow = get_object_or_404(
+            ProcedureFlow,
+            pk=pk,
+            flow_type=ProcedureFlow.COPY   # 🔒 blindaje
+        )
 
         if flow.status != ProcedureFlow.SENT:
             return Response(
@@ -457,9 +462,20 @@ class CopyDecisionAPIView(APIView):
             )
 
         if decision == "approved":
-            flow.status = ProcedureFlow.RECEIVED
+
+            # 🔴 REGLA CLAVE
+            if flow.procedure.flows.filter(
+                flow_type=ProcedureFlow.NORMAL,
+                status=ProcedureFlow.FINALIZED,
+                is_active=True
+            ).exists():
+                flow.status = ProcedureFlow.FINALIZED
+            else:
+                flow.status = ProcedureFlow.RECEIVED
+
         elif decision == "rejected":
             flow.status = ProcedureFlow.REJECTED
+
         else:
             return Response(
                 {"error": "Decisión inválida"},
@@ -469,8 +485,12 @@ class CopyDecisionAPIView(APIView):
         flow.comment = comment
         flow.save(update_fields=["status", "comment"])
 
-        return Response({"success": True})
-
+        return Response(
+            {
+                "success": True,
+                "status": flow.status
+            }
+        )
 
 # ----------- LIST MOVIMIENTOS
 
@@ -501,21 +521,29 @@ class VirtualFlowListAPIView(generics.ListAPIView):
                 "to_area",
                 "sent_by"
             )
+            .filter(flow_type=ProcedureFlow.NORMAL)
             .exclude(status=ProcedureFlow.PENDING_SCHEDULE)
-            .order_by("sequence")
+            .order_by("-sequence")
         )
 
-        # 🔐 Búsqueda interna
+        # Búsqueda interna
         if code:
             if not agency_id:
                 return ProcedureFlow.objects.none()
 
             qs = qs.filter(
-                procedure__code__icontains=code,
-                procedure__agency_id=agency_id
+                Q(
+                    procedure__code__icontains=code,
+                    procedure__agency_id=agency_id
+                )
+                |
+                Q(
+                    procedure__code_destino__icontains=code,
+                    procedure__to_area__agency_id=agency_id
+                )
             )
 
-        # 🌐 Búsqueda pública (solo virtual)
+        # Búsqueda pública (solo virtual)
         if tracking_code:
             qs = qs.filter(
                 procedure__tracking_code=tracking_code,
@@ -636,6 +664,11 @@ class CopyInboxApprovedAPIView(generics.ListAPIView):
 
         area_id = self.request.headers.get("X-Area-Id")
 
+        APPROVED_COPY_STATUSES = [
+            ProcedureFlow.RECEIVED,
+            ProcedureFlow.FINALIZED,
+        ]
+
         if not area_id:
             return ProcedureFlow.objects.none()
 
@@ -644,7 +677,7 @@ class CopyInboxApprovedAPIView(generics.ListAPIView):
             .filter(
                 to_area_id=area_id,
                 flow_type=ProcedureFlow.COPY,
-                status=ProcedureFlow.RECEIVED,
+                status__in=APPROVED_COPY_STATUSES,
                 is_active=True
             )
             .select_related("procedure", "from_area", "to_area")
@@ -838,6 +871,14 @@ class RejectProcedureFlowAPIView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         new_flow = serializer.save()
+
+
+        if flow.procedure.is_virtual:
+
+            send_procedure_rejected_email(
+                procedure=flow.procedure,
+                comment=new_flow.comment
+            ) 
 
         return Response(
             {

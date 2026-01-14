@@ -3,6 +3,7 @@ from django.utils.timezone import now
 from django.conf import settings
 from django.db import transaction
 from apps.user.models import User
+from .utils import send_procedure_rejected_email
 
 from .models import ( 
 
@@ -207,17 +208,11 @@ class ProcedureCreateSerializer(serializers.Serializer):
         required=False
     )
     # Destino
-    # agency = serializers.PrimaryKeyRelatedField(
-    #     queryset=Agency.objects.all()
-    # )
-    destination_areas = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(
-            queryset=Area.objects.all()
-        ),
-        required=False,
-        allow_empty=True
+    agency = serializers.PrimaryKeyRelatedField(
+        queryset=Agency.objects.all(),
+        required=False
     )
-    copy_areas = serializers.ListField(
+    destination_areas = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(
             queryset=Area.objects.all()
         ),
@@ -232,19 +227,9 @@ class ProcedureCreateSerializer(serializers.Serializer):
 
         is_virtual = data.get("is_virtual", False)
 
-        destination_areas = set(data.get("destination_areas", []))
-        copy_areas = set(data.get("copy_areas", []))
-
-        # 🔒 CASO VIRTUAL
         if is_virtual:
-            # No se valida destination_areas
+    
             return data
-
-        # ❌ Un área no puede ser destino y copia
-        if destination_areas & copy_areas:
-            raise serializers.ValidationError(
-                "An area cannot be both destination and copy"
-            )
 
         return data
     
@@ -264,7 +249,7 @@ class ProcedureCreateSerializer(serializers.Serializer):
               "error": "Estimado usuario el registro de trámites no está disponible los domingos ni feriados."
            })
         
-        # 🟡 DEFINIR ESTADO INICIAL DEL FLOW
+        #  DEFINIR ESTADO INICIAL DEL FLOW
         flow_status = ProcedureFlow.SENT
         registered_out_of_schedule_at = None
 
@@ -274,38 +259,42 @@ class ProcedureCreateSerializer(serializers.Serializer):
 
         # 🔹 Usuario y área por defecto (TU CÓDIGO)
         tracking_code = None
+ 
         if is_virtual:
+
+            agency = validated_data.pop("agency", None)
 
             tracking_code = generate_unique_tracking_code()
             user = User.objects.first()
-            from_area, to_area = get_virtual_areas()
+            from_area, to_area = get_virtual_areas(agency)
 
             destination_areas = [to_area]
-            copy_areas = []
 
         else:
 
             user = request.user
             from_area = validated_data.pop("from_area", None)
             destination_areas = validated_data.pop("destination_areas")
-            copy_areas = validated_data.pop("copy_areas", [])
-
+         
         created = []
-
+     
         for area in destination_areas:
 
-            origin_agency = from_area.agency
-            destination_agency = area.agency
-            main_agency = Agency.objects.get(id=settings.MAIN_AGENCY_ID)
+            origin_agency = area.agency if is_virtual else from_area.agency
 
-            # 🟢 Código origen (SIEMPRE)
+            # Código origen (SIEMPRE)
             code = generate_procedure_code(origin_agency)
 
             code_destino = None
 
-            # 🔴 SOLO si va hacia Andahuaylas desde otra agencia
-            if destination_agency.id == main_agency.id and origin_agency.id != main_agency.id:
-                code_destino = generate_procedure_code(main_agency)
+            # SOLO si va hacia Andahuaylas desde otra agencia
+            if not is_virtual:
+               
+               destination_agency = area.agency
+               main_agency = Agency.objects.get(id=settings.MAIN_AGENCY_ID)
+
+               if destination_agency.id == main_agency.id and origin_agency.id != main_agency.id:
+                  code_destino = generate_procedure_code(main_agency)
 
             procedure = Procedure.objects.create(
                 code=code,
@@ -320,7 +309,7 @@ class ProcedureCreateSerializer(serializers.Serializer):
 
             sequence = 1
 
-            # 🔴 FLOW INICIAL (MODIFICADO)
+            # FLOW INICIAL (MODIFICADO)
             ProcedureFlow.objects.create(
                 procedure=procedure,
                 to_area=area,
@@ -334,7 +323,7 @@ class ProcedureCreateSerializer(serializers.Serializer):
                 registered_out_of_schedule_at=registered_out_of_schedule_at
             )
 
-            # 📎 Archivos (TU CÓDIGO)
+            # Archivos (TU CÓDIGO)
             for file in files:
                 ProcedureFile.objects.create(
                     procedure=procedure,
@@ -355,11 +344,18 @@ class ProcedureUpdateSerializer(serializers.ModelSerializer):
             "document_number",
             "folios",
             "subject",
+
             "sender_dni",
             "sender_name",
             "sender_address",
             "sender_phone",
             "sender_email",
+
+            # ✅ UBICACIÓN
+            "department",
+            "province",
+            "district",
+
             "from_area",
             "to_area",
             "is_virtual",

@@ -57,13 +57,20 @@ def generate_procedure_code(agency: Agency) -> str:
     year = timezone.now().year
 
     with transaction.atomic():
-        sequence, _ = ProcedureSequence.objects.select_for_update().get_or_create(
-            agency=agency,
-            year=year
+        sequence, created = (
+            ProcedureSequence.objects
+            .select_for_update()
+            .get_or_create(
+                agency=agency,
+                year=year,
+                defaults={
+                    "last_number": agency.start_sequence - 1
+                }
+            )
         )
 
         sequence.last_number += 1
-        sequence.save()
+        sequence.save(update_fields=["last_number"])
 
         number_formatted = str(sequence.last_number).zfill(6)
         return f"{number_formatted}-{year}"
@@ -88,16 +95,15 @@ def generar_qr_base64(url: str) -> str:
     img_base64 = base64.b64encode(buffer.getvalue()).decode()
     return f"data:image/png;base64,{img_base64}"
 
-def get_virtual_areas():
+def get_virtual_areas(agency: Agency):
 
     tramite_virtual = Area.objects.get(
-        agency__name="Andahuaylas",
         type="TV"
     )
 
     mesa_partes = Area.objects.get(
-        agency__name="Andahuaylas",
-        code="001"
+        agency=agency,
+        type="TE",
     )
 
     return tramite_virtual, mesa_partes
@@ -168,6 +174,40 @@ def send_procedure_email(procedure, is_out_of_schedule=False):
 
     email.attach_alternative(html_content, "text/html")
     email.send(fail_silently=False)
+
+def send_procedure_rejected_email(procedure, comment=""):
+    """
+    Envía correo cuando un trámite virtual es rechazado (solo texto)
+    """
+
+    # 🔒 Solo trámites virtuales
+    if not procedure.is_virtual:
+        return
+
+    if not procedure.sender_email:
+        return
+
+    subject = "Trámite Rechazado – Mesa de Partes Virtual"
+
+    text_content = (
+        "Su trámite virtual ha sido rechazado.\n\n"
+        f"Código de seguimiento: {procedure.tracking_code}\n"
+    )
+
+    if comment:
+        text_content += f"Motivo del rechazo:\n{comment}\n\n"
+
+    text_content += "Mesa de Partes Virtual – ADEA"
+
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=text_content,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[procedure.sender_email],
+    )
+
+    email.send(fail_silently=False)
+
 
 def build_procedure_email_html(procedure, is_out_of_schedule):
     status_block = ""
@@ -317,3 +357,10 @@ def generate_unique_tracking_code():
         code = generate_tracking_code()
         if not Procedure.objects.filter(tracking_code=code).exists():
             return code
+        
+def procedure_is_finalized(procedure):
+    return procedure.flows.filter(
+        flow_type=ProcedureFlow.NORMAL,
+        status=ProcedureFlow.FINALIZED,
+        is_active=True
+    ).exists()

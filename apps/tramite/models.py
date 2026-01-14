@@ -49,6 +49,10 @@ class Agency(models.Model):
 
     name = models.CharField(max_length=150)
     direccion = models.TextField(blank=True, null=True)
+    state = models.BooleanField(default=True)
+    start_sequence = models.PositiveIntegerField(
+        default=1
+    )
 
     def __str__(self):
         return self.name

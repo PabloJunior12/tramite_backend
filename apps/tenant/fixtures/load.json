@@ -18881,6 +18881,13 @@
     }
   },
   {
+    "model": "tramite.agency",
+    "pk": 6,
+    "fields": {
+      "name": "Virtual"
+    }
+  },
+  {
     "model": "tramite.area",
     "pk": 1,
     "fields": {
