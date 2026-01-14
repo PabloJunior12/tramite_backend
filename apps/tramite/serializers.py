@@ -735,6 +735,13 @@ class FinalizeFlowSerializer(serializers.Serializer):
             is_derive = flow.is_derive
         )
 
+        ProcedureFlow.objects.filter(
+            procedure=procedure,
+            flow_type=ProcedureFlow.COPY,
+            status=ProcedureFlow.RECEIVED,
+            is_active=True
+        ).update(status=ProcedureFlow.FINALIZED)
+
         return new_flow
 
 # RECHAZAR 
