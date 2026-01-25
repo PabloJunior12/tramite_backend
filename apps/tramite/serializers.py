@@ -830,7 +830,7 @@ class ObservedFlowSerializer(serializers.Serializer):
             sequence=get_next_sequence(procedure),
             flow_type=flow.flow_type,
             status=ProcedureFlow.OBSERVED,
-            from_area=flow.to_area,   # 👈 quien rechaza
+            from_area=flow.from_area,   # 👈 quien rechaza
             to_area=flow.to_area,     # 👈 quien ejecuta la acción
             comment=self.validated_data.get("comment", ""),
             is_active=True,          # 👈 RECHAZO NUNCA ES ACTIVO

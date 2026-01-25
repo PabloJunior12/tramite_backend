@@ -149,12 +149,12 @@ class Procedure(models.Model):
         Document,
         on_delete=models.PROTECT
     )
-    document_number = models.CharField(max_length=50, blank=True, null=True)
+    document_number = models.CharField(max_length=255, blank=True, null=True)
     folios = models.PositiveIntegerField(default=0)
 
     # Remitente
     sender_dni = models.CharField(max_length=15, blank=True, null=True)
-    sender_name = models.CharField(max_length=255)
+    sender_name = models.CharField(max_length=255, blank=True, null=True)
     sender_representante = models.CharField(max_length=255, blank=True, null=True)
     sender_address = models.CharField(max_length=255, blank=True, null=True)
     sender_phone = models.CharField(max_length=20, blank=True, null=True)

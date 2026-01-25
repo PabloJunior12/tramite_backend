@@ -783,24 +783,24 @@ class ObservedInboxAPIView(generics.ListAPIView):
             return ProcedureFlow.objects.none()
 
         # Subquery: último SENT NORMAL antes del REJECTED
-        last_sent_flow = ProcedureFlow.objects.filter(
-            procedure=OuterRef("procedure"),
-            flow_type=ProcedureFlow.NORMAL,
-            status=ProcedureFlow.RECEIVED,
-            sequence__lt=OuterRef("sequence")
-        ).order_by("-sequence")
+        # last_sent_flow = ProcedureFlow.objects.filter(
+        #     procedure=OuterRef("procedure"),
+        #     flow_type=ProcedureFlow.NORMAL,
+        #     status=ProcedureFlow.RECEIVED,
+        #     sequence__lt=OuterRef("sequence")
+        # ).order_by("-sequence")
 
         return (
             ProcedureFlow.objects
-            .annotate(
-                last_sender_area=Subquery(
-                    last_sent_flow.values("from_area_id")[:1]
-                )
-            )
+            # .annotate(
+            #     last_sender_area=Subquery(
+            #         last_sent_flow.values("from_area_id")[:1]
+            #     )
+            # )
             .filter(
                 flow_type=ProcedureFlow.NORMAL,           
                 status=ProcedureFlow.OBSERVED,
-                last_sender_area=area_id,
+                from_area=area_id,
                 is_active=True
             )
             .select_related("procedure", "from_area")
@@ -1273,15 +1273,10 @@ class FlowDashboardAPIView(APIView):
 
         observed_base = (
             ProcedureFlow.objects
-            .annotate(
-                last_sender_area=Subquery(
-                    last_sent_flow.values("from_area_id")[:1]
-                )
-            )
             .filter(
                 flow_type=ProcedureFlow.NORMAL,
                 status=ProcedureFlow.OBSERVED,
-                last_sender_area=area_id,
+                from_area=area_id,
                 is_active=True
             )
         )
