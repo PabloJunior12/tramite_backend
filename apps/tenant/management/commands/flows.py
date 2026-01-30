@@ -34,7 +34,7 @@ class Command(BaseCommand):
                 LEFT JOIN areas ao ON ao.id = h.origen_id
                 LEFT JOIN areas ad ON ad.id = h.destino_id
                 LEFT JOIN users u ON u.id = h.user_id
-                WHERE h.solo_visualizacion = 0   
+                WHERE h.solo_visualizacion = 0
                 ORDER BY h.tramite_id, h.secuencia
               
             """)
@@ -69,7 +69,20 @@ class Command(BaseCommand):
                 username=data["username"]
             ).first()
 
+            # Área por defecto (solo una vez fuera del loop si quieres optimizar)
+            first_area = Area.objects.order_by("id").first()
+
+            # 🔁 Regla especial para TV
+            if data["tipo_tramite"] == "TV" and data["secuencia"] <= 2:
+                  
+                  from_area_final = first_area
+
+            else:
+                  
+                  from_area_final = from_area
+
             if not to_area or not user:
+
                 continue
 
             origen_asunto = data.get("origen_asunto")
@@ -98,9 +111,9 @@ class Command(BaseCommand):
                
                comment = data.get("comentario")
 
-            ProcedureFlow.objects.create(
+            procedure = ProcedureFlow.objects.create(
                 procedure=procedure,
-                from_area=from_area,
+                from_area=from_area_final,
                 to_area=to_area,
                 flow_type=ProcedureFlow.NORMAL,
                 status=STATUS_MAP.get(
@@ -112,8 +125,8 @@ class Command(BaseCommand):
                 comment=comment,
                 sent_by=user,
                 sequence=data["secuencia"],
-                sent_at=make_aware(data["created_at"])
-                if data.get("created_at") else None,
+                # sent_at=make_aware(data["created_at"])
+                # if data.get("created_at") else None,
 
                 origin_options=origin_options,
                 is_active=(
@@ -123,3 +136,6 @@ class Command(BaseCommand):
                 is_to_finalize = data["estado_tramite"] == "Por finalizar" or data["operacion"] == "PF",
                 is_derive = is_derive
             )
+
+            procedure.created_at = make_aware(data["created_at"])
+            procedure.save(update_fields=["created_at"])

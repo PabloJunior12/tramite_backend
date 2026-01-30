@@ -25,6 +25,7 @@ class LoginView(APIView):
 
     def post(self, request):
 
+        agency_id = request.data.get('agency')
         username = request.data.get('username')
         password = request.data.get('password')
         # tenant_name = request.data.get('tenant')
@@ -39,6 +40,13 @@ class LoginView(APIView):
 
         if not user.is_active:
             return Response({"error": "Cuenta desactivada."}, status=403)
+
+        # ✅ VALIDAR AGENCIA
+        if user.agency_id != int(agency_id):
+            return Response(
+                {"error": "La agencia seleccionada no pertenece a este usuario."},
+                status=403
+            )
 
         # 🔒 VALIDACIÓN DE TENANT
         # tenant_name = (tenant_name or "").lower().strip()

@@ -1,8 +1,34 @@
 from django.core.management.base import BaseCommand
 from django.db import connections
-from apps.tramite.models import Agency, Document, Procedure, Area
+from apps.tramite.models import Agency, Document, Procedure, Area, ProcedureFile, ProcedureSequence
 from apps.user.models import User
 from django.utils.timezone import make_aware
+import os
+from django.core.files import File
+from collections import defaultdict
+from apps.tenant.utils import extract_sequence_and_year
+
+OLD_MEDIA_PATH = "media/img"
+
+def migrate_procedure_files(procedure, filenames, user):
+    if not filenames:
+        return
+
+    files = [f.strip() for f in filenames.split(",") if f.strip()]
+
+    for filename in files:
+        old_path = os.path.join(OLD_MEDIA_PATH, filename)
+
+        if not os.path.exists(old_path):
+            print(f" Archivo no encontrado: {old_path}")
+            continue
+
+        with open(old_path, "rb") as f:
+            ProcedureFile.objects.create(
+                procedure=procedure,
+                uploaded_by=user,
+                file=File(f, name=filename),
+            )
 
 class Command(BaseCommand):
     help = "Migrar procedimientos desde MySQL legacy"
@@ -20,12 +46,15 @@ class Command(BaseCommand):
                 LEFT JOIN areas ad ON ad.id = t.destino_id
                 LEFT JOIN users u ON u.id = t.user_id
                 
+                
             """)
 
             columns = [col[0] for col in cursor.description]
             rows = cursor.fetchall()
 
         data = [dict(zip(columns, row)) for row in rows]
+
+        max_sequence_by_agency_year = defaultdict(int)
 
         for item in data:
             try:
@@ -53,7 +82,7 @@ class Command(BaseCommand):
                     from_area_final = from_area
 
            
-                Procedure.objects.create(
+                procedure = Procedure.objects.create(
                     code=item["codigo"],
                     agency=agency,
                     document_type=document,
@@ -70,9 +99,29 @@ class Command(BaseCommand):
                     subject = item["asunto"] or "-",
                     is_virtual=item["tipo_tramite"] == "TV",
                     created_by=user,
-                    created_at=make_aware(item["created_at"]),
                     tracking_code=item["unique_id"] if item["tipo_tramite"] == "TV" else None,
                     code_destino=None,
+                )
+
+                procedure.created_at = make_aware(item["created_at"])
+                procedure.save(update_fields=["created_at"])
+
+
+                migrate_procedure_files(
+                    procedure=procedure,
+                    filenames=item.get("archivo"),
+                    user=user
+                )
+
+                # 🔢 Calcular secuencia
+                seq, year = extract_sequence_and_year(item["codigo"])
+                if seq is not None and year is not None:
+                    key = (agency.id, year)
+                    if seq > max_sequence_by_agency_year[key]:
+                        max_sequence_by_agency_year[key] = seq
+
+                self.stdout.write(
+                    self.style.SUCCESS(f"Migrado: {item['codigo']}")
                 )
 
                 self.stdout.write(
@@ -85,3 +134,15 @@ class Command(BaseCommand):
                         f"Error en {item['codigo']}: {str(e)}"
                     )
                 )
+
+        # Actualizar ProcedureSequence
+        for (agency_id, year), last_seq in max_sequence_by_agency_year.items():
+            ProcedureSequence.objects.update_or_create(
+                agency_id=agency_id,
+                year=year,
+                defaults={"last_number": last_seq},
+            )
+
+        self.stdout.write(
+            self.style.SUCCESS("✅ Migración finalizada correctamente")
+        )
