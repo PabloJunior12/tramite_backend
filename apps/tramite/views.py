@@ -16,6 +16,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from .utils import generar_qr_base64, ProcedureFilter, send_procedure_email, send_procedure_rejected_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
 from django.conf import settings
+
 class CustomPagination(PageNumberPagination):
 
     page_size = 5  # Número de registros por página
@@ -493,7 +494,6 @@ class CopyDecisionAPIView(APIView):
         )
 
 # ----------- LIST MOVIMIENTOS
-
 class VirtualFlowListAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureFlowSerializer
@@ -725,8 +725,8 @@ class FinalizeFlowListAPIView(generics.ListAPIView):
         return (
             qs
             .filter(
-                Q(to_area_id=area_id) |                 # Finalizados en su área
-                Q(procedure__agency=area.agency)        # O trámites de su agencia
+                Q(to_area_id=area)                 # Finalizados en su área
+                # Q(procedure__agency=area.agency)        # O trámites de su agencia
             )
             .select_related("procedure", "from_area")
             .order_by("-created_at")
@@ -1228,12 +1228,15 @@ class FlowDashboardAPIView(APIView):
     def get(self, request):
 
         area_id = request.headers.get("X-Area-Id")
+
         if not area_id:
             return Response(
                 {"detail": "X-Area-Id header required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        area = Area.objects.select_related("agency").get(id=area_id)
+    
         # 🔹 SUBQUERY: último envío previo
         last_sent_flow = ProcedureFlow.objects.filter(
             procedure=OuterRef("procedure"),
@@ -1268,8 +1271,12 @@ class FlowDashboardAPIView(APIView):
         finalized_base = ProcedureFlow.objects.filter(
             flow_type=ProcedureFlow.NORMAL,
             status=ProcedureFlow.FINALIZED,
-            from_area_id=area_id
+            is_active=True
         )
+    
+        if area.code not in ['001', '002']:
+         
+            finalized_base = finalized_base.filter(Q(to_area_id=area))
 
         observed_base = (
             ProcedureFlow.objects

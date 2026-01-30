@@ -726,7 +726,7 @@ class FinalizeFlowSerializer(serializers.Serializer):
             sequence=get_next_sequence(procedure),
             flow_type=flow.flow_type,
             status=ProcedureFlow.FINALIZED,
-            from_area=flow.to_area,
+            from_area=flow.from_area,
             to_area=flow.to_area,
             sent_by=user,
             is_active=True,
