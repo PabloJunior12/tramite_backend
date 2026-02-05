@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 import os
 from django.core.files import File
 from collections import defaultdict
-from apps.tenant.utils import extract_sequence_and_year
+from apps.tenant.utils import extract_sequence_and_year, resolve_location_from_procedencia
 
 OLD_MEDIA_PATH = "media/img"
 
@@ -40,13 +40,12 @@ class Command(BaseCommand):
                     t.*,
                     ao.initials AS origen_initials,
                     ad.initials AS destino_initials,
+                    ad.type_tramite AS destino_type, 
                     u.username AS username
                 FROM tramites t
                 LEFT JOIN areas ao ON ao.id = t.origen_id
                 LEFT JOIN areas ad ON ad.id = t.destino_id
                 LEFT JOIN users u ON u.id = t.user_id
-                
-                
             """)
 
             columns = [col[0] for col in cursor.description]
@@ -67,7 +66,6 @@ class Command(BaseCommand):
                     initials__iexact=item["origen_initials"]
                 ).first()
 
-
                 to_area = Area.objects.filter(
                     initials__iexact=item["destino_initials"]
                 ).first()
@@ -77,11 +75,28 @@ class Command(BaseCommand):
 
                 # 🔁 Regla especial para TV
                 if item["tipo_tramite"] == "TV":
+
                     from_area_final = first_area
+
                 else:
+                    
                     from_area_final = from_area
 
-           
+                department_id = item.get("department_id")
+                province_id = item.get("province_id")
+                district_id = item.get("district_id")
+
+                if not department_id or not province_id or not district_id:
+                    department, province, district = resolve_location_from_procedencia(
+                        item.get("procedencia")
+                    )
+
+                    department_id = department.id if department else None
+                    province_id = province.id if province else None
+                    district_id = district.id if district else None
+
+                is_annulled = item['status'] == 'anulado'
+
                 procedure = Procedure.objects.create(
                     code=item["codigo"],
                     agency=agency,
@@ -98,9 +113,13 @@ class Command(BaseCommand):
                     to_area=to_area,
                     subject = item["asunto"] or "-",
                     is_virtual=item["tipo_tramite"] == "TV",
+                    is_annulled = is_annulled,
                     created_by=user,
                     tracking_code=item["unique_id"] if item["tipo_tramite"] == "TV" else None,
                     code_destino=None,
+                    department_id=department_id,
+                    province_id=province_id,
+                    district_id=district_id
                 )
 
                 procedure.created_at = make_aware(item["created_at"])

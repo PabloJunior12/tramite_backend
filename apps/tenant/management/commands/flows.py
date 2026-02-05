@@ -4,6 +4,9 @@ from apps.tramite.models import Procedure, ProcedureFlow, Area
 from apps.user.models import User
 from django.utils.timezone import make_aware
 from apps.tenant.utils import parse_origin_options
+from collections import defaultdict
+import re
+
 
 STATUS_MAP = {
     "Enviado": ProcedureFlow.SENT,
@@ -28,13 +31,14 @@ class Command(BaseCommand):
                     t.agency_id AS tramite_agency_id,
                     ao.initials AS origen_initials,
                     ad.initials AS destino_initials,
+                    ad.type_tramite AS destino_type, 
                     u.username AS username
                 FROM historicos h
                 INNER JOIN tramites t ON t.id = h.tramite_id
                 LEFT JOIN areas ao ON ao.id = h.origen_id
                 LEFT JOIN areas ad ON ad.id = h.destino_id
                 LEFT JOIN users u ON u.id = h.user_id
-                WHERE h.solo_visualizacion = 0
+              
                 ORDER BY h.tramite_id, h.secuencia
               
             """)
@@ -42,44 +46,45 @@ class Command(BaseCommand):
             columns = [col[0] for col in cursor.description]
             rows = cursor.fetchall()
             total = len(rows)
-            print(total)
+
+
         for row in rows:
 
             data = dict(zip(columns, row))
-       
-            try:
+
+            raw_code = data["codigo"]
+            normalized_code = re.sub(r"-C\d+$", "", raw_code)
+
+            try:    
                 procedure = Procedure.objects.get(
-                    code=data["codigo"],
+                    code=normalized_code,
                     agency_id=data["tramite_agency_id"]
                 )
             except Procedure.DoesNotExist:
-                continue
 
-            print(data['tramite_agency_id'], data["codigo"], procedure.agency.pk, procedure.code)
+                continue
 
             from_area = Area.objects.filter(
                 initials__iexact=data["origen_initials"]
             ).first()
 
-            to_area = Area.objects.filter(
-                initials__iexact=data["destino_initials"]
-            ).first()
+            first_area = Area.objects.order_by("id").first()    
+            
+            to_area = Area.objects.filter(initials__iexact=data["destino_initials"]).first()
+
+            if data["tipo_tramite"] == 'TV' and data["secuencia"] <= 2:
+
+                from_area_final = first_area
+
+            else:
+
+                
+                from_area_final = from_area
 
             user = User.objects.filter(
                 username=data["username"]
             ).first()
 
-            # Área por defecto (solo una vez fuera del loop si quieres optimizar)
-            first_area = Area.objects.order_by("id").first()
-
-            # 🔁 Regla especial para TV
-            if data["tipo_tramite"] == "TV" and data["secuencia"] <= 2:
-                  
-                  from_area_final = first_area
-
-            else:
-                  
-                  from_area_final = from_area
 
             if not to_area or not user:
 
@@ -111,28 +116,50 @@ class Command(BaseCommand):
                
                comment = data.get("comentario")
 
+            # =====================================================
+            # FLOW TYPE + STATUS
+            # =====================================================
+            if data["solo_visualizacion"] == 1:
+                flow_type = ProcedureFlow.COPY
+
+                if data["operacion_tramite"] == "RZ":
+                    status = ProcedureFlow.REJECTED
+                elif data["operacion_tramite"] == "CP":
+                    status = ProcedureFlow.SENT
+                else:
+                    status = ProcedureFlow.RECEIVED
+
+            else:
+
+                flow_type = ProcedureFlow.NORMAL
+
+                if (data["estado_tramite"] == "Por finalizar" and data["operacion_tramite"] == "PT"):
+
+                    status = ProcedureFlow.RECEIVED
+
+                else:
+                    
+                    status = STATUS_MAP.get(data["estado_tramite"], ProcedureFlow.SENT)
+
+            is_active = (
+                    data["estado"] == "V"
+                    or data["estado_tramite"] == "Observado"
+            )
+
             procedure = ProcedureFlow.objects.create(
                 procedure=procedure,
                 from_area=from_area_final,
                 to_area=to_area,
-                flow_type=ProcedureFlow.NORMAL,
-                status=STATUS_MAP.get(
-                    data["estado_tramite"],
-                    ProcedureFlow.SENT
-                ),
+                flow_type=flow_type,
+                status=status,
                 subject=procedure.subject,
                 subject_derivar=subject_derivar,
                 comment=comment,
                 sent_by=user,
                 sequence=data["secuencia"],
-                # sent_at=make_aware(data["created_at"])
-                # if data.get("created_at") else None,
 
                 origin_options=origin_options,
-                is_active=(
-                        data["estado"] == "V"
-                        or data["estado_tramite"] == "Observado"
-                ),
+                is_active=is_active,
                 is_to_finalize = data["estado_tramite"] == "Por finalizar" or data["operacion"] == "PF",
                 is_derive = is_derive
             )

@@ -36,6 +36,7 @@ urlpatterns = [
 
     path("copies-pending/", CopyInboxPendingAPIView.as_view()),
     path("copies-approved/", CopyInboxApprovedAPIView.as_view()),
+    
     path("copies-decision/<int:pk>/", CopyDecisionAPIView.as_view()),
 
 

@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
-from django.db.models import OuterRef, Subquery, Q
+from django.db.models import OuterRef, Subquery, Q, Exists
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from weasyprint import HTML
@@ -483,6 +483,7 @@ class CopyDecisionAPIView(APIView):
                 status=400
             )
 
+        flow.is_to_finalize = False
         flow.comment = comment
         flow.save(update_fields=["status", "comment"])
 
@@ -664,21 +665,29 @@ class CopyInboxApprovedAPIView(generics.ListAPIView):
 
         area_id = self.request.headers.get("X-Area-Id")
 
-        APPROVED_COPY_STATUSES = [
-            ProcedureFlow.RECEIVED,
-            ProcedureFlow.FINALIZED,
-        ]
-
         if not area_id:
             return ProcedureFlow.objects.none()
+
+        original_finalizado_subquery = ProcedureFlow.objects.filter(
+            procedure_id=OuterRef("procedure_id"),
+            flow_type=ProcedureFlow.NORMAL,
+            status=ProcedureFlow.FINALIZED,
+            is_active=True,
+        )
 
         return (
             ProcedureFlow.objects
             .filter(
                 to_area_id=area_id,
                 flow_type=ProcedureFlow.COPY,
-                status__in=APPROVED_COPY_STATUSES,
+                status__in=[
+                    ProcedureFlow.RECEIVED,
+                    ProcedureFlow.FINALIZED,
+                ],
                 is_active=True
+            )
+            .annotate(
+                original_finalizado=Exists(original_finalizado_subquery)
             )
             .select_related("procedure", "from_area", "to_area")
             .order_by("-created_at")
@@ -1248,7 +1257,7 @@ class FlowDashboardAPIView(APIView):
         # 🔹 BASE QUERYSETS
 
         pending_base = ProcedureFlow.objects.filter(
-            flow_type=ProcedureFlow.NORMAL,
+        
             status=ProcedureFlow.SENT,
             to_area_id=area_id,
             is_active=True
@@ -1262,7 +1271,7 @@ class FlowDashboardAPIView(APIView):
         )
 
         sent_base = ProcedureFlow.objects.filter(
-            flow_type=ProcedureFlow.NORMAL,
+          
             status=ProcedureFlow.SENT,
             from_area_id=area_id,
             is_to_observed=False

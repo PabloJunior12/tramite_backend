@@ -442,6 +442,9 @@ class ProcedureCopySerializer(serializers.ModelSerializer):
 class ProcedureListSerializer(serializers.ModelSerializer):
 
     files = ProcedureFileSerializer(many=True, read_only=True)
+    department = DepartmentSerializer()
+    province = ProvinceSerializer()
+    district = DistrictSerializer()
     from_area = AreaSerializer()
     to_area = AreaSerializer()
     document_type = DocumentSerializer()
@@ -523,6 +526,7 @@ class ProcedureFlowSerializer(serializers.ModelSerializer):
     from_area = AreaSerializer()
     to_area = AreaSerializer()
     is_copy = serializers.SerializerMethodField()
+    original_finalizado = serializers.BooleanField(read_only=True)
 
     class Meta:
 
@@ -645,6 +649,10 @@ class DeriveFlowSerializer(serializers.Serializer):
 
         created = []
 
+        first_sequence = get_next_sequence(procedure)
+
+        print(first_sequence)
+
         # ➡️ Crear flows NORMAL (SENT)
         for area in dest_areas:
             created.append(
@@ -678,7 +686,7 @@ class DeriveFlowSerializer(serializers.Serializer):
             created.append(
                 ProcedureFlow.objects.create(
                     procedure=procedure,
-                    sequence=1,
+                    sequence=first_sequence,
                     flow_type=ProcedureFlow.COPY,
                     status=ProcedureFlow.SENT,
                     from_area=flow.to_area,
