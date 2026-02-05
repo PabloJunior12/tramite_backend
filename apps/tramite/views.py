@@ -464,26 +464,20 @@ class CopyDecisionAPIView(APIView):
 
         if decision == "approved":
 
-            # 🔴 REGLA CLAVE
-            if flow.procedure.flows.filter(
-                flow_type=ProcedureFlow.NORMAL,
-                status=ProcedureFlow.FINALIZED,
-                is_active=True
-            ).exists():
-                flow.status = ProcedureFlow.FINALIZED
-            else:
-                flow.status = ProcedureFlow.RECEIVED
+            flow.status = ProcedureFlow.RECEIVED
 
         elif decision == "rejected":
+
             flow.status = ProcedureFlow.REJECTED
 
         else:
+            
             return Response(
                 {"error": "Decisión inválida"},
                 status=400
             )
 
-        flow.is_to_finalize = False
+    
         flow.comment = comment
         flow.save(update_fields=["status", "comment"])
 
