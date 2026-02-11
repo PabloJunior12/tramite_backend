@@ -322,7 +322,8 @@ class ProcedureFlow(models.Model):
     is_to_finalize = models.BooleanField(default=False)
     is_to_observed = models.BooleanField(default=False)
     is_derive = models.BooleanField(default=False)
-    
+    is_corrected = models.BooleanField(default=False)    
+
     subject = models.TextField(null=True, blank=True)
     subject_derivar = models.TextField(null=True, blank=True)
 

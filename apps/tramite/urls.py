@@ -1,6 +1,6 @@
 from rest_framework import routers
 from django.urls import path
-from .views import CompanyViewSet, CheckScheduleAPIView, ProcedureHistorySimplicadoPDFAPIView, HolidayViewSet, WorkScheduleViewSet, ProcedureListVirtualesAPIView, VirtualFlowListAPIView, ProcedureVirtualCreateAPIView, UpdateProcedureCopiesAPIView, CopyInboxPendingAPIView, CopyInboxApprovedAPIView, TicketProcedureAPIView, ProcedureAnnulAPIView, ProcedureUpdateAPIView, SentFlowListAPIView, FlowDashboardAPIView, ProcedureHistoryPDFAPIView, ResendObservedProcedureFlowAPIView, RejectInboxAPIView, ObservedInboxAPIView, ObservedProcedureFlowAPIView, FinalizeFlowListAPIView, RejectProcedureFlowAPIView, PendingFlowListAPIView, FinalizeProcedureFlowAPIView, DeriveProcedureFlowAPIView, ReceptionFlowListAPIView, ReceiveProcedureFlowAPIView, ProcedureListAPIView, MyAreasView, AreaViewSet, DocumentViewSet, AgencyViewSet, ProcedureCreateAPIView, DepartmentListAPIView, ProvinceListAPIView, DistrictListAPIView, CopyDecisionAPIView
+from .views import CompanyViewSet, CheckScheduleAPIView, SubsanarProcedureFlowAPIView, ProcedureCodePreviewAPIView, ProcedureHistorySimplicadoPDFAPIView, HolidayViewSet, WorkScheduleViewSet, ProcedureListVirtualesAPIView, VirtualFlowListAPIView, ProcedureVirtualCreateAPIView, UpdateProcedureCopiesAPIView, CopyInboxPendingAPIView, CopyInboxApprovedAPIView, TicketProcedureAPIView, ProcedureAnnulAPIView, ProcedureUpdateAPIView, SentFlowListAPIView, FlowDashboardAPIView, ProcedureHistoryPDFAPIView, ResendObservedProcedureFlowAPIView, RejectInboxAPIView, ObservedInboxAPIView, ObservedProcedureFlowAPIView, FinalizeFlowListAPIView, RejectProcedureFlowAPIView, PendingFlowListAPIView, FinalizeProcedureFlowAPIView, DeriveProcedureFlowAPIView, ReceptionFlowListAPIView, ReceiveProcedureFlowAPIView, ProcedureListAPIView, MyAreasView, AreaViewSet, DocumentViewSet, AgencyViewSet, ProcedureCreateAPIView, DepartmentListAPIView, ProvinceListAPIView, DistrictListAPIView, CopyDecisionAPIView
 
 router = routers.DefaultRouter()
 
@@ -53,7 +53,16 @@ urlpatterns = [
     path("flows/<int:flow_id>/reject/", RejectProcedureFlowAPIView.as_view()),
     path("flows/<int:flow_id>/observed/", ObservedProcedureFlowAPIView.as_view()),
     path("flows/<int:flow_id>/resend-observed/", ResendObservedProcedureFlowAPIView.as_view()),
+    path("flows/<int:flow_id>/subsanar/", SubsanarProcedureFlowAPIView.as_view()),
 
     path("dashboard/flows/",  FlowDashboardAPIView.as_view()),
+
+
+    path(
+        "procedures/preview-code/",
+        ProcedureCodePreviewAPIView.as_view(),
+        name="procedure-preview-code"
+    ),
+
 
 ] + router.urls

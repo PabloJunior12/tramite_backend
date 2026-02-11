@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.utils.timezone import localtime
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.db.models import Q
 import django_filters
 from .models import Agency, ProcedureSequence, ProcedureFlow, Area, WorkSchedule, Holiday, Procedure
 from datetime import datetime, time
@@ -14,19 +15,20 @@ from io import BytesIO
 
 class ProcedureFilter(django_filters.FilterSet):
 
-    # code exacto o parcial
+    # 🔍 BUSCADOR GLOBAL
+    search = django_filters.CharFilter(method="filter_global")
+
+    # filtros avanzados (los que ya tienes)
     code = django_filters.CharFilter(
         field_name="code",
         lookup_expr="icontains"
     )
 
-    # nombre del remitente
     sender_name = django_filters.CharFilter(
         field_name="sender_name",
         lookup_expr="icontains"
     )
 
-    # fechas
     date_from = django_filters.DateFilter(
         field_name="created_at",
         lookup_expr="date__gte"
@@ -36,13 +38,83 @@ class ProcedureFilter(django_filters.FilterSet):
         lookup_expr="date__lte"
     )
 
+    def filter_global(self, queryset, name, value):
+        return queryset.filter(
+            Q(code__icontains=value) |
+            Q(document_number__icontains=value) |
+            Q(sender_name__icontains=value) |
+            Q(subject__icontains=value)
+        )
+
     class Meta:
         model = Procedure
         fields = [
+            "search",
             "code",
             "sender_name",
             "date_from",
             "date_to",
+        ]
+
+class PendingFlowFilter(django_filters.FilterSet):
+
+    # 🔍 BUSCADOR GLOBAL
+    search = django_filters.CharFilter(method="filter_global")
+
+    # ⚙️ FILTROS AVANZADOS
+    code = django_filters.CharFilter(
+        field_name="procedure__code",
+        lookup_expr="icontains"
+    )
+
+    sender_name = django_filters.CharFilter(
+        field_name="procedure__sender_name",
+        lookup_expr="icontains"
+    )
+
+    date_from = django_filters.DateFilter(
+        field_name="created_at",
+        lookup_expr="date__gte"
+    )
+
+    date_to = django_filters.DateFilter(
+        field_name="created_at",
+        lookup_expr="date__lte"
+    )
+
+
+    from_area_id = django_filters.NumberFilter(
+        field_name="from_area_id"
+    )
+
+    to_area_id = django_filters.NumberFilter(
+        field_name="to_area_id"
+    )
+
+    type = django_filters.CharFilter(
+        field_name="procedure__from_area__type",
+        lookup_expr="icontains"
+    )
+
+    def filter_global(self, queryset, name, value):
+        return queryset.filter(
+            Q(procedure__code__icontains=value) |
+            Q(procedure__document_number__icontains=value) |
+            Q(procedure__sender_name__icontains=value) |
+            Q(procedure__subject__icontains=value)
+        )
+
+    class Meta:
+        model = ProcedureFlow
+        fields = [
+            "search",
+            "code",
+            "sender_name",
+            "date_from",
+            "date_to",
+            "from_area_id",
+            "to_area_id",
+            "type"
         ]
 
 def resolve_sequence_agency(destination_area: Area) -> Agency:
@@ -74,6 +146,23 @@ def generate_procedure_code(agency: Agency) -> str:
 
         number_formatted = str(sequence.last_number).zfill(6)
         return f"{number_formatted}-{year}"
+
+def preview_procedure_code(agency: Agency) -> str:
+    year = timezone.now().year
+
+    sequence = (
+        ProcedureSequence.objects
+        .filter(agency=agency, year=year)
+        .first()
+    )
+
+    if sequence:
+        next_number = sequence.last_number + 1
+    else:
+        next_number = agency.start_sequence
+
+    number_formatted = str(next_number).zfill(6)
+    return f"{number_formatted}-{year}"
 
 def get_next_sequence(procedure):
     last = (

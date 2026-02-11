@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from .serializers import CompanySerializer, ProvinceSerializer, DepartmentSerializer, ProcedureUpdateCopiesSerializer, DistrictSerializer, ProcedureAnnulSerializer,  WorkScheduleSerializer, HolidaySerializer, ProcedureUpdateSerializer, ResendObservedFlowSerializer, RejectFlowSerializer, ObservedFlowSerializer, AreaSerializer, FinalizeFlowSerializer, DeriveFlowSerializer, ProcedureFlowSerializer, ReceiveFlowSerializer, DocumentSerializer, ProcedureListSerializer, MyAreaSerializer, AgencySerializer, ProcedureCreateSerializer
+from .serializers import CompanySerializer, ProvinceSerializer, SubsanarFlowSerializer, ProcedureCodePreviewSerializer, DepartmentSerializer, ProcedureUpdateCopiesSerializer, DistrictSerializer, ProcedureAnnulSerializer,  WorkScheduleSerializer, HolidaySerializer, ProcedureUpdateSerializer, ResendObservedFlowSerializer, RejectFlowSerializer, ObservedFlowSerializer, AreaSerializer, FinalizeFlowSerializer, DeriveFlowSerializer, ProcedureFlowSerializer, ReceiveFlowSerializer, DocumentSerializer, ProcedureListSerializer, MyAreaSerializer, AgencySerializer, ProcedureCreateSerializer
 from .models import Company, Department, Province, District, UserArea, Area, Document, Agency, Procedure, ProcedureFlow, ProcedureFile, Holiday, WorkSchedule
 from rest_framework import filters, status, viewsets, generics
 from rest_framework.views import APIView
@@ -14,7 +14,7 @@ from weasyprint import HTML
 from django.db import transaction, models
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
-from .utils import generar_qr_base64, ProcedureFilter, send_procedure_email, send_procedure_rejected_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
+from .utils import generar_qr_base64, preview_procedure_code, ProcedureFilter, PendingFlowFilter, send_procedure_email, send_procedure_rejected_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
 from django.conf import settings
 
 class CustomPagination(PageNumberPagination):
@@ -243,6 +243,35 @@ class ProcedureVirtualCreateAPIView(APIView):
             },
             status=status.HTTP_201_CREATED
         )
+
+class ProcedureCodePreviewAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        agency_id = request.query_params.get("agency")
+
+        if not agency_id:
+            return Response(
+                {"error": "agency es requerido"},
+                status=400
+            )
+
+        try:
+            agency = Agency.objects.get(id=agency_id)
+        except Agency.DoesNotExist:
+            return Response(
+                {"error": "Agencia no encontrada"},
+                status=404
+            )
+
+        code = preview_procedure_code(agency)
+
+        serializer = ProcedureCodePreviewSerializer({
+            "code": code
+        })
+
+        return Response(serializer.data)
 
 class ProcedureCreateAPIView(APIView):
 
@@ -556,6 +585,8 @@ class PendingFlowListAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureFlowSerializer
     pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PendingFlowFilter
 
     def get_queryset(self):
         area_id = self.request.headers.get("X-Area-Id")
@@ -566,7 +597,6 @@ class PendingFlowListAPIView(generics.ListAPIView):
             ProcedureFlow.objects
             .filter(
                 to_area_id=area_id,
-                # flow_type=ProcedureFlow.NORMAL,
                 status=ProcedureFlow.SENT,
                 is_active=True
             )
@@ -579,6 +609,8 @@ class ReceptionFlowListAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureFlowSerializer
     pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PendingFlowFilter
 
     def get_queryset(self):
         area_id = self.request.headers.get("X-Area-Id")
@@ -603,6 +635,8 @@ class SentFlowListAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureFlowSerializer
     pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PendingFlowFilter
 
     def get_queryset(self):
         area_id = self.request.headers.get("X-Area-Id")
@@ -692,6 +726,8 @@ class FinalizeFlowListAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureFlowSerializer
     pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PendingFlowFilter
 
     def get_queryset(self):
 
@@ -1031,6 +1067,30 @@ class ResendObservedProcedureFlowAPIView(APIView):
 
         return Response(
             {"message": "Trámite reenviado correctamente"},
+            status=status.HTTP_200_OK
+        )
+
+# SUBSANAR
+class SubsanarProcedureFlowAPIView(APIView):
+
+    @transaction.atomic
+    def post(self, request, flow_id):
+
+        flow = get_object_or_404(
+            ProcedureFlow,
+            id=flow_id
+        )
+
+        serializer = SubsanarFlowSerializer(
+            data=request.data,
+            context={"request": request, "flow": flow}
+        )
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            {"message": "Trámite subsanado correctamente"},
             status=status.HTTP_200_OK
         )
 

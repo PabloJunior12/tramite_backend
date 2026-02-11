@@ -118,6 +118,9 @@ class UserAreaSerializer(serializers.ModelSerializer):
             'area_type',
         ]
 
+class ProcedureCodePreviewSerializer(serializers.Serializer):
+
+    code = serializers.CharField()
 
 class DocumentSerializer(serializers.ModelSerializer):
     
@@ -220,6 +223,14 @@ class ProcedureCreateSerializer(serializers.Serializer):
         allow_empty=True
     )
 
+    copy_areas = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(
+            queryset=Area.objects.all()
+        ),
+        required=False,
+        allow_empty=True
+    )
+
     # Flags
     is_virtual = serializers.BooleanField(default=False)
 
@@ -244,10 +255,10 @@ class ProcedureCreateSerializer(serializers.Serializer):
         # 🔴 VALIDACIÓN DE HORARIO (NUEVO)
         schedule_status = check_schedule(now())
 
-        if schedule_status == ScheduleResult.NO_LABORABLE:
-           raise serializers.ValidationError({
-              "error": "Estimado usuario el registro de trámites no está disponible los domingos ni feriados."
-           })
+        # if schedule_status == ScheduleResult.NO_LABORABLE:
+        #    raise serializers.ValidationError({
+        #       "error": "Estimado usuario el registro de trámites no está disponible los domingos ni feriados."
+        #    })
         
         #  DEFINIR ESTADO INICIAL DEL FLOW
         flow_status = ProcedureFlow.SENT
@@ -276,8 +287,10 @@ class ProcedureCreateSerializer(serializers.Serializer):
             from_area = validated_data.pop("from_area", None)
             destination_areas = validated_data.pop("destination_areas")
          
+        copy_areas = validated_data.pop("copy_areas", [])
+
         created = []
-     
+        last_main_procedure = None
         for area in destination_areas:
 
             origin_agency = area.agency if is_virtual else from_area.agency
@@ -331,7 +344,23 @@ class ProcedureCreateSerializer(serializers.Serializer):
                     uploaded_by=user
                 )
 
+            last_main_procedure = procedure
             created.append(procedure)
+
+        for area in copy_areas:
+
+            ProcedureFlow.objects.create(
+                procedure=last_main_procedure,
+                to_area=area,
+                sent_by=user,
+                sequence=1,
+                subject=last_main_procedure.subject,
+                from_area=last_main_procedure.from_area,
+                flow_type=ProcedureFlow.COPY,  # 👈 DIFERENCIA
+                status=flow_status,
+                is_active=True,
+                registered_out_of_schedule_at=registered_out_of_schedule_at
+            )
 
         return created
 
@@ -450,6 +479,7 @@ class ProcedureListSerializer(serializers.ModelSerializer):
     document_type = DocumentSerializer()
     agency = AgencySerializer()
     copies = serializers.SerializerMethodField()  # 👈 CLAVE
+    is_rejected = serializers.SerializerMethodField()  # 👈 NUEVO
 
     class Meta:
         model = Procedure
@@ -466,6 +496,12 @@ class ProcedureListSerializer(serializers.ModelSerializer):
             .order_by("sequence")
         )
         return ProcedureCopySerializer(copies, many=True).data
+
+    def get_is_rejected(self, obj):
+        return obj.flows.filter(
+            status=ProcedureFlow.REJECTED,
+            is_active=True
+        ).exists()
 
 class ProcedureAnnulSerializer(serializers.Serializer):
 
@@ -947,3 +983,48 @@ class ResendObservedFlowSerializer(serializers.Serializer):
         )
 
         return new_flow
+
+# SUBSANAR
+class SubsanarFlowSerializer(serializers.Serializer):
+
+    comment = serializers.CharField(required=False, allow_blank=True)
+
+    def save(self):
+
+        flow = self.context["flow"]              # flow OBSERVED actual
+        user = self.context["request"].user
+        procedure = flow.procedure
+
+        # 🔒 Validación mínima
+        if flow.status != ProcedureFlow.OBSERVED:
+            raise serializers.ValidationError(
+                "El trámite no se encuentra observado"
+            )
+
+        # 1️⃣ Obtener el primer flow (inicio)
+        first_flow = (
+            ProcedureFlow.objects
+            .filter(procedure=procedure)
+            .order_by("sequence")
+            .first()
+        )
+
+        if not first_flow:
+            raise serializers.ValidationError(
+                "No se encontró el flujo inicial del trámite"
+            )
+
+        # 2️⃣ Eliminar todos los flows posteriores
+        ProcedureFlow.objects.filter(
+            procedure=procedure
+        ).exclude(id=first_flow.id).delete()
+
+        # 3️⃣ Actualizar el flow inicial
+        first_flow.status = ProcedureFlow.OBSERVED
+        first_flow.comment = self.validated_data.get("comment")
+        first_flow.is_active = True
+        first_flow.is_corrected = True
+        first_flow.sequence = 1
+        first_flow.save()
+
+        return first_flow
