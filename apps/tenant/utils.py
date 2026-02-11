@@ -5,11 +5,20 @@ def parse_origin_options(value):
     if not value:
         return []
 
-    return [
-        opt.strip()
-        for opt in value.split(",")
-        if opt.strip()
-    ]
+    mapping = {
+        "Conocimiento y fines": "INFO",
+        "Autorizado": "AUTHORIZED",
+    }
+
+    result = []
+
+    for opt in value.split(","):
+        clean = opt.strip()
+        if clean in mapping:
+            result.append(mapping[clean])
+
+    return result
+
 
 def extract_sequence_and_year(code):
     """

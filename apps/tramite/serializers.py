@@ -215,12 +215,11 @@ class ProcedureCreateSerializer(serializers.Serializer):
         queryset=Agency.objects.all(),
         required=False
     )
-    destination_areas = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(
-            queryset=Area.objects.all()
-        ),
+    
+    destination_area = serializers.PrimaryKeyRelatedField(
+        queryset=Area.objects.all(),
         required=False,
-        allow_empty=True
+        allow_null=True
     )
 
     copy_areas = serializers.ListField(
@@ -255,10 +254,10 @@ class ProcedureCreateSerializer(serializers.Serializer):
         # 🔴 VALIDACIÓN DE HORARIO (NUEVO)
         schedule_status = check_schedule(now())
 
-        # if schedule_status == ScheduleResult.NO_LABORABLE:
-        #    raise serializers.ValidationError({
-        #       "error": "Estimado usuario el registro de trámites no está disponible los domingos ni feriados."
-        #    })
+        if schedule_status == ScheduleResult.NO_LABORABLE:
+           raise serializers.ValidationError({
+              "error": "Estimado usuario el registro de trámites no está disponible los domingos ni feriados."
+           })
         
         #  DEFINIR ESTADO INICIAL DEL FLOW
         flow_status = ProcedureFlow.SENT
@@ -285,7 +284,9 @@ class ProcedureCreateSerializer(serializers.Serializer):
 
             user = request.user
             from_area = validated_data.pop("from_area", None)
-            destination_areas = validated_data.pop("destination_areas")
+            destination_area = validated_data.pop("destination_area", None)
+
+            destination_areas = [destination_area] if destination_area else []
          
         copy_areas = validated_data.pop("copy_areas", [])
 
@@ -480,6 +481,7 @@ class ProcedureListSerializer(serializers.ModelSerializer):
     agency = AgencySerializer()
     copies = serializers.SerializerMethodField()  # 👈 CLAVE
     is_rejected = serializers.SerializerMethodField()  # 👈 NUEVO
+    reject_comment = serializers.SerializerMethodField()  
 
     class Meta:
         model = Procedure
@@ -502,6 +504,14 @@ class ProcedureListSerializer(serializers.ModelSerializer):
             status=ProcedureFlow.REJECTED,
             is_active=True
         ).exists()
+
+    def get_reject_comment(self, obj):
+        flow = obj.flows.filter(
+            status=ProcedureFlow.REJECTED,
+            is_active=True
+        ).first()  # por seguridad
+
+        return flow.comment if flow else None
 
 class ProcedureAnnulSerializer(serializers.Serializer):
 
@@ -629,10 +639,12 @@ class DeriveFlowSerializer(serializers.Serializer):
     
     origin_options = serializers.JSONField(required=False)
 
-    destination_areas = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(queryset=Area.objects.all()),
-        allow_empty=False
+    destination_area = serializers.PrimaryKeyRelatedField(
+        queryset=Area.objects.all(),
+        required=False,
+        allow_null=True
     )
+    
     copy_areas = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(queryset=Area.objects.all()),
         required=False
@@ -653,12 +665,6 @@ class DeriveFlowSerializer(serializers.Serializer):
         if str(flow.to_area_id) != str(area_id):
             raise serializers.ValidationError("You cannot derive from another area")
 
-        # No duplicar áreas
-        dest = set(a.id for a in data["destination_areas"])
-        copies = set(a.id for a in data.get("copy_areas", []))
-        if dest & copies:
-            raise serializers.ValidationError("An area cannot be destination and copy")
-
         return data
 
     @transaction.atomic
@@ -669,7 +675,7 @@ class DeriveFlowSerializer(serializers.Serializer):
         user = request.user
         procedure = flow.procedure
 
-        dest_areas = self.validated_data["destination_areas"]
+        dest_areas = self.validated_data.pop("destination_area", None)
         copy_areas = self.validated_data.get("copy_areas", [])
         subject_derivar = self.validated_data.get("subject_derivar", "")
 
@@ -687,10 +693,10 @@ class DeriveFlowSerializer(serializers.Serializer):
 
         first_sequence = get_next_sequence(procedure)
 
-        print(first_sequence)
+        destination_areas = [dest_areas] if dest_areas else []
 
         # ➡️ Crear flows NORMAL (SENT)
-        for area in dest_areas:
+        for area in destination_areas:
             created.append(
                 ProcedureFlow.objects.create(
                     procedure=procedure,
