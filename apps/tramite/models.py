@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
+from django.utils.timezone import now
 import uuid
 
 User = settings.AUTH_USER_MODEL
@@ -207,6 +207,22 @@ class Procedure(models.Model):
         blank=True,
         help_text="Código original de la agencia de origen"
     )
+    
+    due_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True
+    )
+
+    is_blocked = models.BooleanField(
+        default=False,
+        db_index=True
+    )
+
+    blocked_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     class Meta:
         constraints = [
@@ -215,6 +231,20 @@ class Procedure(models.Model):
                 name='unique_code_per_agency'
             )
         ]
+
+    @property
+    def is_expired(self):
+        if not self.due_date:
+            return False
+        return now() > self.due_date
+
+
+    @property
+    def is_blocked_effective(self):
+        """
+        Bloqueo real del sistema basado en fecha o bloqueo manual
+        """
+        return self.is_blocked or self.is_expired
 
     def __str__(self):
         return self.code

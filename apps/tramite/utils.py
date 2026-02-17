@@ -453,3 +453,19 @@ def procedure_is_finalized(procedure):
         status=ProcedureFlow.FINALIZED,
         is_active=True
     ).exists()
+
+def calculate_due_date(base_date):
+
+    year = base_date.year
+    month = base_date.month
+
+    if 1 <= month <= 10:
+        dt = datetime(year, 11, 30, 23, 59, 59)
+
+    elif month == 11:
+        dt = datetime(year, 12, 31, 23, 59, 59)
+
+    else:  # diciembre
+        dt = datetime(year + 1, 1, 31, 23, 59, 59)
+
+    return timezone.make_aware(dt)

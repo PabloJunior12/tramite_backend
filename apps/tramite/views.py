@@ -518,6 +518,39 @@ class CopyDecisionAPIView(APIView):
         )
 
 # ----------- LIST MOVIMIENTOS
+class ProcedureConsultAPIView(generics.ListAPIView):
+
+    serializer_class = ProcedureListSerializer
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+
+        qs = Procedure.objects.select_related(
+            "from_area",
+            "to_area",
+            "agency",
+            "created_by"
+        ).order_by("-created_at")
+
+        # filtros
+        agency = self.request.query_params.get("agency")
+        code = self.request.query_params.get("code")
+        year = self.request.query_params.get("year")
+
+        if agency:
+            qs = qs.filter(agency_id=agency)
+
+        if code:
+            qs = qs.filter(
+                Q(code__icontains=code) |
+                Q(code_destino__icontains=code)
+            )
+
+        if year:
+            qs = qs.filter(created_at__year=year)
+
+        return qs
+
 class VirtualFlowListAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureFlowSerializer

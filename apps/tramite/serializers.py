@@ -14,7 +14,7 @@ from .models import (
 
 )
 
-from .utils import generate_procedure_code, get_next_sequence, get_virtual_areas, resolve_sequence_agency, check_schedule, ScheduleResult, generate_unique_tracking_code
+from .utils import calculate_due_date, generate_procedure_code, get_next_sequence, get_virtual_areas, resolve_sequence_agency, check_schedule, ScheduleResult, generate_unique_tracking_code
     
 
 import os
@@ -310,6 +310,7 @@ class ProcedureCreateSerializer(serializers.Serializer):
                if destination_agency.id == main_agency.id and origin_agency.id != main_agency.id:
                   code_destino = generate_procedure_code(main_agency)
 
+            now_date = now()
             procedure = Procedure.objects.create(
                 code=code,
                 code_destino=code_destino,
@@ -318,6 +319,7 @@ class ProcedureCreateSerializer(serializers.Serializer):
                 from_area=from_area,
                 to_area=area,
                 tracking_code=tracking_code,
+                due_date=calculate_due_date(now_date),
                 **validated_data
             )
 
@@ -590,6 +592,13 @@ class ReceiveFlowSerializer(serializers.Serializer):
 
         flow: ProcedureFlow = self.context["flow"]
         request = self.context["request"]
+        procedure = flow.procedure
+
+        # BLOQUEAR SI ESTÁ VENCIDO
+        if procedure.is_expired:
+            raise serializers.ValidationError(
+                "Este trámite está bloqueado por fuera del plazo de finalización"
+            )
 
         # Debe estar enviado
         if flow.status != ProcedureFlow.SENT:
@@ -655,6 +664,14 @@ class DeriveFlowSerializer(serializers.Serializer):
 
         flow: ProcedureFlow = self.context["flow"]
         request = self.context["request"]
+
+        procedure = flow.procedure
+
+        # BLOQUEAR SI ESTÁ VENCIDO
+        if procedure.is_expired:
+            raise serializers.ValidationError(
+                "Este trámite está bloqueado por fuera del plazo de finalización"
+            )
 
         # Debe estar recepcionado
         if flow.status != ProcedureFlow.RECEIVED:
@@ -751,6 +768,14 @@ class FinalizeFlowSerializer(serializers.Serializer):
         flow: ProcedureFlow = self.context["flow"]
         request = self.context["request"]
 
+        procedure = flow.procedure
+
+        # BLOQUEAR SI ESTÁ VENCIDO
+        if procedure.is_expired:
+            raise serializers.ValidationError(
+                "Este trámite está bloqueado por fuera del plazo de finalización"
+            )
+
         if flow.status != ProcedureFlow.RECEIVED:
             raise serializers.ValidationError("Only received procedures can be finalized")
 
@@ -804,6 +829,14 @@ class RejectFlowSerializer(serializers.Serializer):
         flow: ProcedureFlow = self.context["flow"]
         request = self.context["request"]
 
+        procedure = flow.procedure
+
+        # BLOQUEAR SI ESTÁ VENCIDO
+        if procedure.is_expired:
+            raise serializers.ValidationError(
+                "Este trámite está bloqueado por fuera del plazo de finalización"
+            )
+
         # Solo se rechaza una rama SENT activa
         if flow.status != ProcedureFlow.SENT or not flow.is_active:
             raise serializers.ValidationError("Only active sent procedures can be rejected")
@@ -854,6 +887,14 @@ class ObservedFlowSerializer(serializers.Serializer):
 
         flow: ProcedureFlow = self.context["flow"]
         request = self.context["request"]
+
+        procedure = flow.procedure
+
+        # BLOQUEAR SI ESTÁ VENCIDO
+        if procedure.is_expired:
+            raise serializers.ValidationError(
+                "Este trámite está bloqueado por fuera del plazo de finalización"
+            )
 
         if flow.status != ProcedureFlow.RECEIVED:
             raise serializers.ValidationError("Only sent procedures can be observed")
@@ -916,6 +957,15 @@ class ResendObservedFlowSerializer(serializers.Serializer):
 
     def validate(self, data):
         flow: ProcedureFlow = self.context["flow"]
+
+        procedure = flow.procedure
+
+        # BLOQUEAR SI ESTÁ VENCIDO
+        if procedure.is_expired:
+            raise serializers.ValidationError(
+                "Este trámite está bloqueado por fuera del plazo de finalización"
+            )
+
 
         if flow.status != ProcedureFlow.OBSERVED:
             raise serializers.ValidationError(
@@ -1000,6 +1050,14 @@ class SubsanarFlowSerializer(serializers.Serializer):
         flow = self.context["flow"]              # flow OBSERVED actual
         user = self.context["request"].user
         procedure = flow.procedure
+
+      
+        # BLOQUEAR SI ESTÁ VENCIDO
+        if procedure.is_expired:
+            raise serializers.ValidationError(
+                "Este trámite está bloqueado por fuera del plazo de finalización"
+            )
+
 
         # 🔒 Validación mínima
         if flow.status != ProcedureFlow.OBSERVED:
