@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
-from .serializers import CompanySerializer, ProvinceSerializer, SubsanarFlowSerializer, ProcedureCodePreviewSerializer, DepartmentSerializer, ProcedureUpdateCopiesSerializer, DistrictSerializer, ProcedureAnnulSerializer,  WorkScheduleSerializer, HolidaySerializer, ProcedureUpdateSerializer, ResendObservedFlowSerializer, RejectFlowSerializer, ObservedFlowSerializer, AreaSerializer, FinalizeFlowSerializer, DeriveFlowSerializer, ProcedureFlowSerializer, ReceiveFlowSerializer, DocumentSerializer, ProcedureListSerializer, MyAreaSerializer, AgencySerializer, ProcedureCreateSerializer
-from .models import Company, Department, Province, District, UserArea, Area, Document, Agency, Procedure, ProcedureFlow, ProcedureFile, Holiday, WorkSchedule
+from .serializers import CompanySerializer, ProvinceSerializer, SubsanarFlowSerializer, ProcedureCodePreviewSerializer, GlobalBackupSerializer,  DepartmentSerializer, ProcedureUpdateCopiesSerializer, DistrictSerializer, ProcedureAnnulSerializer,  WorkScheduleSerializer, HolidaySerializer, ProcedureUpdateSerializer, ResendObservedFlowSerializer, RejectFlowSerializer, ObservedFlowSerializer, AreaSerializer, FinalizeFlowSerializer, DeriveFlowSerializer, ProcedureFlowSerializer, ReceiveFlowSerializer, DocumentSerializer, ProcedureListSerializer, MyAreaSerializer, AgencySerializer, ProcedureCreateSerializer
+from .models import Company, Department, Province, District, UserArea, Area, Document, Agency, Procedure, ProcedureFlow, GlobalBackup, ProcedureFile, Holiday, WorkSchedule
 from rest_framework import filters, status, viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
@@ -9,13 +9,15 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from django.db.models import OuterRef, Subquery, Q, Exists
 from django.template.loader import render_to_string
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse, Http404
 from weasyprint import HTML
 from django.db import transaction, models
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from .utils import generar_qr_base64, preview_procedure_code, ProcedureFilter, PendingFlowFilter, send_procedure_email, send_procedure_rejected_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
 from django.conf import settings
+from django.core.management import call_command
+import os
 
 class CustomPagination(PageNumberPagination):
 
@@ -1430,3 +1432,44 @@ class FlowDashboardAPIView(APIView):
             })
 
         return Response(data, status=status.HTTP_200_OK)
+
+class GlobalBackupView(APIView):
+
+    def get(self, request):
+
+        backups = GlobalBackup.objects.all().order_by("-created_at")
+        serializer = GlobalBackupSerializer(backups, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+
+        user = request.user.username if request.user.is_authenticated else "manual"
+        call_command("backup_global", user=user)
+        return Response(
+            {"message": "Backup global iniciado"},
+            status=status.HTTP_201_CREATED
+        )
+    
+    
+class GlobalBackupDownloadView(APIView):
+
+    def get(self, request, backup_id):
+
+        try:
+            backup = GlobalBackup.objects.get(id=backup_id)
+
+        except GlobalBackup.DoesNotExist:
+
+            raise Http404("Backup no encontrado")
+
+        if not os.path.exists(backup.file_path):
+
+            raise Http404("Archivo no existe en el servidor")
+
+        response = FileResponse(
+            open(backup.file_path, "rb"),
+            as_attachment=True,
+            filename=backup.file_name
+        )
+
+        return response

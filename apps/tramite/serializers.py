@@ -8,7 +8,7 @@ from .utils import send_procedure_rejected_email
 from .models import ( 
 
     Company, Area, UserArea, Document, Agency, Procedure, WorkSchedule, Holiday,
-    ProcedureFlow, Department, Province, District,
+    ProcedureFlow, Department, Province, District, GlobalBackup,
     ProcedureFile,
     ProcedureSequence
 
@@ -18,6 +18,13 @@ from .utils import calculate_due_date, generate_procedure_code, get_next_sequenc
     
 
 import os
+
+class GlobalBackupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        
+        model = GlobalBackup
+        fields = "__all__"
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
