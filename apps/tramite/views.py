@@ -178,12 +178,19 @@ class ProcedureListVirtualesAPIView(generics.ListAPIView):
     def get_queryset(self):
 
         area = self.get_active_area()
+        year = self.request.query_params.get("year")
+
+        queryset = Procedure.objects.filter(
+            to_area=area,
+            is_virtual=True
+        )
+
+        # 👇 Solo aplicar filtro si year existe
+        if year:
+            queryset = queryset.filter(created_at__year=year)
 
         return (
-            Procedure.objects.filter(
-                 to_area=area,
-                 is_virtual=True
-        )
+            queryset
             .prefetch_related("files", "to_area")
             .order_by("-code")
         )
