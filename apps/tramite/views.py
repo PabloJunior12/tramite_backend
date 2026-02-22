@@ -1,23 +1,32 @@
-from django.shortcuts import render, get_object_or_404
-from .serializers import CompanySerializer, ProvinceSerializer, SubsanarFlowSerializer, ProcedureCodePreviewSerializer, GlobalBackupSerializer,  DepartmentSerializer, ProcedureUpdateCopiesSerializer, DistrictSerializer, ProcedureAnnulSerializer,  WorkScheduleSerializer, HolidaySerializer, ProcedureUpdateSerializer, ResendObservedFlowSerializer, RejectFlowSerializer, ObservedFlowSerializer, AreaSerializer, FinalizeFlowSerializer, DeriveFlowSerializer, ProcedureFlowSerializer, ReceiveFlowSerializer, DocumentSerializer, ProcedureListSerializer, MyAreaSerializer, AgencySerializer, ProcedureCreateSerializer
-from .models import Company, Department, Province, District, UserArea, Area, Document, Agency, Procedure, ProcedureFlow, GlobalBackup, ProcedureFile, Holiday, WorkSchedule
+
+from .serializers import CompanySerializer, ProvinceSerializer, SubsanarFlowSerializer, ProcedureCodePreviewSerializer, SystemBackupSerializer, GlobalBackupSerializer,  DepartmentSerializer, ProcedureUpdateCopiesSerializer, DistrictSerializer, ProcedureAnnulSerializer,  WorkScheduleSerializer, HolidaySerializer, ProcedureUpdateSerializer, ResendObservedFlowSerializer, RejectFlowSerializer, ObservedFlowSerializer, AreaSerializer, FinalizeFlowSerializer, DeriveFlowSerializer, ProcedureFlowSerializer, ReceiveFlowSerializer, DocumentSerializer, ProcedureListSerializer, MyAreaSerializer, AgencySerializer, ProcedureCreateSerializer
+from .models import Company, Department, Province, District, UserArea, Area, Document, Agency, Procedure, ProcedureFlow, GlobalBackup, ProcedureFile, Holiday, WorkSchedule, SystemBackup
+
 from rest_framework import filters, status, viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
+
 from django.db.models import OuterRef, Subquery, Q, Exists
 from django.template.loader import render_to_string
 from django.http import HttpResponse, FileResponse, Http404
-from weasyprint import HTML
 from django.db import transaction, models
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
-from .utils import generar_qr_base64, preview_procedure_code, ProcedureFilter, PendingFlowFilter, send_procedure_email, send_procedure_rejected_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
+from django.shortcuts import render, get_object_or_404
 from django.conf import settings
 from django.core.management import call_command
+
+from datetime import datetime
+from weasyprint import HTML
+
+import subprocess
 import os
+
+from .utils import generar_qr_base64, preview_procedure_code, ProcedureFilter, PendingFlowFilter, send_procedure_email, send_procedure_rejected_email, get_flow_status_display, get_flow_global_status_display, check_schedule, ScheduleResult
+
 
 class CustomPagination(PageNumberPagination):
 
@@ -1433,6 +1442,8 @@ class FlowDashboardAPIView(APIView):
 
         return Response(data, status=status.HTTP_200_OK)
 
+# SISTEMA DE BACKUPS
+
 class GlobalBackupView(APIView):
 
     def get(self, request):
@@ -1449,8 +1460,7 @@ class GlobalBackupView(APIView):
             {"message": "Backup global iniciado"},
             status=status.HTTP_201_CREATED
         )
-    
-    
+       
 class GlobalBackupDownloadView(APIView):
 
     def get(self, request, backup_id):
@@ -1473,3 +1483,65 @@ class GlobalBackupDownloadView(APIView):
         )
 
         return response
+
+class BackupCreateView(APIView):
+
+    def post(self, request):
+
+        # carpeta origen
+        source = os.path.join(settings.MEDIA_ROOT, "procedures")
+
+        # nombre archivo
+        filename = f"procedures_manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tar.gz"
+
+        # carpeta destino
+        backup_dir = os.path.join(settings.BACKUP_ROOT, "manual")
+
+        # crear carpeta si no existe
+        os.makedirs(backup_dir, exist_ok=True)
+
+        destination = os.path.join(backup_dir, filename)
+
+        # ejecutar backup
+        subprocess.run([
+            "tar",
+            "-czf",
+            destination,
+            source
+        ], check=True)
+
+        size = os.path.getsize(destination)
+
+        backup = SystemBackup.objects.create(
+            file_path=destination,
+            size=size,
+            backup_type="manual"
+        )
+
+        return Response({
+            "message": "Backup creado correctamente",
+            "backup_id": backup.id
+        })
+    
+class BackupListView(generics.ListAPIView):
+
+    queryset = SystemBackup.objects.all()
+    serializer_class = SystemBackupSerializer
+
+class BackupDownloadView(APIView):
+
+    def get(self, request, pk):
+
+        try:
+            backup = SystemBackup.objects.get(pk=pk)
+        except SystemBackup.DoesNotExist:
+            raise Http404
+
+        if not os.path.exists(backup.file_path):
+            raise Http404("Archivo no existe")
+
+        return FileResponse(
+            open(backup.file_path, "rb"),
+            as_attachment=True,
+            filename=backup.filename
+        )

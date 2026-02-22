@@ -1,6 +1,6 @@
 from rest_framework import routers
 from django.urls import path
-from .views import CompanyViewSet, GlobalBackupView, GlobalBackupDownloadView, CheckScheduleAPIView, ProcedureConsultAPIView, SubsanarProcedureFlowAPIView, ProcedureCodePreviewAPIView, ProcedureHistorySimplicadoPDFAPIView, HolidayViewSet, WorkScheduleViewSet, ProcedureListVirtualesAPIView, VirtualFlowListAPIView, ProcedureVirtualCreateAPIView, UpdateProcedureCopiesAPIView, CopyInboxPendingAPIView, CopyInboxApprovedAPIView, TicketProcedureAPIView, ProcedureAnnulAPIView, ProcedureUpdateAPIView, SentFlowListAPIView, FlowDashboardAPIView, ProcedureHistoryPDFAPIView, ResendObservedProcedureFlowAPIView, RejectInboxAPIView, ObservedInboxAPIView, ObservedProcedureFlowAPIView, FinalizeFlowListAPIView, RejectProcedureFlowAPIView, PendingFlowListAPIView, FinalizeProcedureFlowAPIView, DeriveProcedureFlowAPIView, ReceptionFlowListAPIView, ReceiveProcedureFlowAPIView, ProcedureListAPIView, MyAreasView, AreaViewSet, DocumentViewSet, AgencyViewSet, ProcedureCreateAPIView, DepartmentListAPIView, ProvinceListAPIView, DistrictListAPIView, CopyDecisionAPIView
+from .views import CompanyViewSet, GlobalBackupView, GlobalBackupDownloadView, CheckScheduleAPIView, ProcedureConsultAPIView, SubsanarProcedureFlowAPIView, ProcedureCodePreviewAPIView, ProcedureHistorySimplicadoPDFAPIView, HolidayViewSet, WorkScheduleViewSet, ProcedureListVirtualesAPIView, VirtualFlowListAPIView, ProcedureVirtualCreateAPIView, UpdateProcedureCopiesAPIView, CopyInboxPendingAPIView, CopyInboxApprovedAPIView, TicketProcedureAPIView, ProcedureAnnulAPIView, ProcedureUpdateAPIView, SentFlowListAPIView, FlowDashboardAPIView, ProcedureHistoryPDFAPIView, ResendObservedProcedureFlowAPIView, RejectInboxAPIView, ObservedInboxAPIView, ObservedProcedureFlowAPIView, FinalizeFlowListAPIView, RejectProcedureFlowAPIView, PendingFlowListAPIView, FinalizeProcedureFlowAPIView, DeriveProcedureFlowAPIView, ReceptionFlowListAPIView, ReceiveProcedureFlowAPIView, ProcedureListAPIView, MyAreasView, AreaViewSet, DocumentViewSet, AgencyViewSet, ProcedureCreateAPIView, DepartmentListAPIView, ProvinceListAPIView, DistrictListAPIView, CopyDecisionAPIView, BackupListView, BackupCreateView, BackupDownloadView
 
 router = routers.DefaultRouter()
 
@@ -65,5 +65,8 @@ urlpatterns = [
     path("dashboard/flows/",  FlowDashboardAPIView.as_view()),
     path("procedures/preview-code/", ProcedureCodePreviewAPIView.as_view(),name="procedure-preview-code"),
 
+    path("backups/", BackupListView.as_view()),
+    path("backups/create/", BackupCreateView.as_view()),
+    path("backups/<int:pk>/download/", BackupDownloadView.as_view()),
 
 ] + router.urls

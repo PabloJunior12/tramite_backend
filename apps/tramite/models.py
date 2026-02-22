@@ -2,9 +2,41 @@ from django.db import models
 from django.conf import settings
 from django.utils.timezone import now
 import uuid
+import os
 
 User = settings.AUTH_USER_MODEL
 
+class SystemBackup(models.Model):
+
+    BACKUP_TYPE_CHOICES = (
+        ("daily", "Diario"),
+        ("manual", "Manual"),
+    )
+
+    file_path = models.CharField(max_length=500)
+
+    backup_type = models.CharField(
+        max_length=10,
+        choices=BACKUP_TYPE_CHOICES
+    )
+
+    size = models.BigIntegerField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    @property
+    def filename(self):
+        return os.path.basename(self.file_path)
+
+    @property
+    def size_mb(self):
+        return round(self.size / (1024 * 1024), 2)
+
+    def __str__(self):
+        return self.filename
 
 class GlobalBackup(models.Model):
 
@@ -303,9 +335,22 @@ class ProcedureFile(models.Model):
     )
 
     file = models.FileField(upload_to=procedure_file_path)
-    description = models.CharField(max_length=255, null=True, blank=True)
 
+    original_name = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True
+    )
+
+    description = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def filename(self):
+        return self.original_name or self.file.name.split("/")[-1]
+
+    def __str__(self):
+        return self.filename
 
 class ProcedureFlow(models.Model):
 

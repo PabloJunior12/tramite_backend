@@ -9,7 +9,7 @@ from .models import (
 
     Company, Area, UserArea, Document, Agency, Procedure, WorkSchedule, Holiday,
     ProcedureFlow, Department, Province, District, GlobalBackup,
-    ProcedureFile,
+    ProcedureFile, SystemBackup,
     ProcedureSequence
 
 )
@@ -25,6 +25,22 @@ class GlobalBackupSerializer(serializers.ModelSerializer):
         
         model = GlobalBackup
         fields = "__all__"
+
+class SystemBackupSerializer(serializers.ModelSerializer):
+
+    filename = serializers.ReadOnlyField()
+    size_mb = serializers.ReadOnlyField()
+
+    class Meta:
+        model = SystemBackup
+        fields = (
+            "id",
+            "filename",
+            "backup_type",
+            "size",
+            "size_mb",
+            "created_at"
+        )
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -256,9 +272,8 @@ class ProcedureCreateSerializer(serializers.Serializer):
         request = self.context["request"]
         is_virtual = validated_data.get("is_virtual", False)
         files = request.FILES.getlist("files")
-        # agency = validated_data["agency"]
-
-        # 🔴 VALIDACIÓN DE HORARIO (NUEVO)
+ 
+        #  VALIDACIÓN DE HORARIO (NUEVO)
         schedule_status = check_schedule(now())
 
         if schedule_status == ScheduleResult.NO_LABORABLE:
@@ -274,7 +289,7 @@ class ProcedureCreateSerializer(serializers.Serializer):
             flow_status = ProcedureFlow.PENDING_SCHEDULE
             registered_out_of_schedule_at = now()
 
-        # 🔹 Usuario y área por defecto (TU CÓDIGO)
+        #  Usuario y área por defecto (TU CÓDIGO)
         tracking_code = None
  
         if is_virtual:
@@ -351,7 +366,8 @@ class ProcedureCreateSerializer(serializers.Serializer):
                 ProcedureFile.objects.create(
                     procedure=procedure,
                     file=file,
-                    uploaded_by=user
+                    uploaded_by=user,
+                    original_name=file.name
                 )
 
             last_main_procedure = procedure
@@ -451,19 +467,18 @@ class ProcedureUpdateSerializer(serializers.ModelSerializer):
 
 class ProcedureFileSerializer(serializers.ModelSerializer):
 
-    file_name = serializers.SerializerMethodField()
+    file_name = serializers.CharField(source="filename", read_only=True)
     file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = ProcedureFile
         fields = ("id", "file_name", "file_url", "created_at")
 
-    def get_file_name(self, obj):
-        return obj.file.name.split("/")[-1]
-
     def get_file_url(self, obj):
         request = self.context.get("request")
-        return request.build_absolute_uri(obj.file.url)
+        if request:
+            return request.build_absolute_uri(obj.file.url)
+        return obj.file.url
 
 class ProcedureCopySerializer(serializers.ModelSerializer):
 
@@ -744,7 +759,8 @@ class DeriveFlowSerializer(serializers.Serializer):
             ProcedureFile.objects.create(
                 procedure=procedure,
                 file=file,
-                uploaded_by=user
+                uploaded_by=user,
+                original_name=file.name
             )
 
         # 📎 Crear flows COPY (SENT)
@@ -1017,7 +1033,8 @@ class ResendObservedFlowSerializer(serializers.Serializer):
                 ProcedureFile.objects.create(
                     procedure=procedure,
                     file=file,
-                    uploaded_by=user
+                    uploaded_by=user,
+                    original_name=file.name
                 )
 
         #  Crear nuevo flow SENT
