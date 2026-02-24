@@ -2,9 +2,9 @@
 from .serializers import CompanySerializer, ProvinceSerializer, SubsanarFlowSerializer, ProcedureCodePreviewSerializer, SystemBackupSerializer, GlobalBackupSerializer,  DepartmentSerializer, ProcedureUpdateCopiesSerializer, DistrictSerializer, ProcedureAnnulSerializer,  WorkScheduleSerializer, HolidaySerializer, ProcedureUpdateSerializer, ResendObservedFlowSerializer, RejectFlowSerializer, ObservedFlowSerializer, AreaSerializer, FinalizeFlowSerializer, DeriveFlowSerializer, ProcedureFlowSerializer, ReceiveFlowSerializer, DocumentSerializer, ProcedureListSerializer, MyAreaSerializer, AgencySerializer, ProcedureCreateSerializer
 from .models import Company, Department, Province, District, UserArea, Area, Document, Agency, Procedure, ProcedureFlow, GlobalBackup, ProcedureFile, Holiday, WorkSchedule, SystemBackup
 
-from rest_framework import filters, status, viewsets, generics
+from rest_framework import status, viewsets, generics
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
@@ -815,8 +815,8 @@ class FinalizeFlowListAPIView(generics.ListAPIView):
         return (
             qs
             .filter(
-                Q(to_area_id=area)                 # Finalizados en su área
-                # Q(procedure__agency=area.agency)        # O trámites de su agencia
+                Q(to_area_id=area) |               # Finalizados en su área
+                Q(procedure__from_area=area)        # O trámites de su agencia
             )
             .select_related("procedure", "from_area")
             .order_by("-created_at")
@@ -1390,7 +1390,7 @@ class FlowDashboardAPIView(APIView):
     
         if area.code not in ['001', '002']:
          
-            finalized_base = finalized_base.filter(Q(to_area_id=area))
+            finalized_base = finalized_base.filter(Q(to_area_id=area) | Q(procedure__from_area=area)  )
 
         observed_base = (
             ProcedureFlow.objects
