@@ -158,7 +158,7 @@ class CheckScheduleAPIView(APIView):
         if schedule_status == ScheduleResult.NO_LABORABLE:
             return Response(
                 {
-                    "error": "Estimado usuario, el registro de trámites no está disponible los domingos ni feriados."
+                    "error": "Estimado usuario. El trámite no puede ser registrado porque la fecha corresponde a un dia feriado o domingo. Por favor, realice el registro en un dia habil"
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
