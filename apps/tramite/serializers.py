@@ -258,11 +258,16 @@ class ProcedureCreateSerializer(serializers.Serializer):
 
     def validate(self, data):
 
+        request = self.context.get("request")
         is_virtual = data.get("is_virtual", False)
 
         if is_virtual:
-    
-            return data
+            files = request.FILES.getlist("files")
+
+            if not files:
+                raise serializers.ValidationError({
+                    "error": "Debe adjuntar al menos un archivo cuando el trámite es virtual."
+                })
 
         return data
     
