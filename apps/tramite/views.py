@@ -500,14 +500,20 @@ class CopyDecisionAPIView(APIView):
         flow = get_object_or_404(
             ProcedureFlow,
             pk=pk,
-            flow_type=ProcedureFlow.COPY   # 🔒 blindaje
+            flow_type=ProcedureFlow.COPY   #  blindaje
         )
+
+        procedure = flow.procedure
 
         if flow.status != ProcedureFlow.SENT:
             return Response(
                 {"error": "La copia ya fue atendida"},
                 status=400
             )
+
+        if procedure.is_expired:
+
+            return Response({"error": "Este trámite está bloqueado por fuera del plazo de finalización"}, status=400 )
 
         if decision == "approved":
 
