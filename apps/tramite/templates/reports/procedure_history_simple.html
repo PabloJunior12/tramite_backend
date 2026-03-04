@@ -29,14 +29,14 @@
         }
 
         .logo img {
-            
+
             width: 100px;
         }
 
         .title {
 
             text-align: center;
-       
+
         }
 
         .title h1 {
@@ -118,8 +118,8 @@
             background-color: #ef6c00;
         }
 
-        .text-bg-danger{
-             background-color: #7a3506;           
+        .text-bg-danger {
+            background-color: #7a3506;
         }
 
         .text-bg-success {
@@ -230,10 +230,17 @@
                 </td>
                 <td>{% firstof authorized_flow.comment "" %}</td>
                 <td>
-                    {{ authorized_flow.subject }}
-                    <br>
+
+                    <p>
+                        {% if authorized_flow.subject_derivar %}
+                        {{ authorized_flow.subject_derivar }}
+                        {% else %}
+                        {{ authorized_flow.subject }}
+                        {% endif %}
+                    </p>
+
                     <span class="badge {{ authorized_flow_status.class }}">
-                         {{ authorized_flow_status.label }}
+                        {{ authorized_flow_status.label }}
                     </span>
                 </td>
             </tr>

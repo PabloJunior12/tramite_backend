@@ -213,7 +213,13 @@
                 <td>{% firstof f.flow.comment "" %}</td>
                 <td>
 
-                    
+                    <p>
+                        {% if f.flow.subject_derivar %}
+                        {{ f.flow.subject_derivar }}
+                        {% else %}
+                        {{ f.flow.subject }}
+                        {% endif %}
+                    </p>
 
                     <span class="badge {{ f.status.class }}">
                         {{ f.status.label }}
