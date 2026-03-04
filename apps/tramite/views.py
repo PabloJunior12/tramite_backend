@@ -152,15 +152,32 @@ class CheckScheduleAPIView(APIView):
 
     def get(self, request):
 
-        now = timezone.now()
-        schedule_status = check_schedule(now)
+        current_time = timezone.now()
+        schedule_status = check_schedule(current_time)
 
+        # ❌ Domingo o feriado
         if schedule_status == ScheduleResult.NO_LABORABLE:
             return Response(
                 {
-                    "error": "Estimado usuario. El trámite no puede ser registrado porque la fecha corresponde a un dia feriado o domingo. Por favor, realice el registro en un dia habil"
+                    "error": (
+                        "Estimado usuario. El trámite no puede ser registrado "
+                        "porque la fecha corresponde a un día feriado o domingo. "
+                        "Por favor, realice el registro en un día hábil."
+                    )
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # ❌ Fuera de horario laboral
+        if schedule_status == ScheduleResult.OUT_OF_SCHEDULE:
+            return Response(
+                {
+                    "error": (
+                        "Estimado usuario. El registro de trámites solo está "
+                        "disponible dentro del horario de atención."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN
             )
 
         return Response(
