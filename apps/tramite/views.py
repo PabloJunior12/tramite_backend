@@ -213,14 +213,6 @@ class ProcedureVirtualCreateAPIView(APIView):
 
     def post(self, request):
 
-        return Response(
-            {
-                "error": "Servicio en mantenimiento, El registro de procedimientos se encuentra temporalmente en mantenimiento. Intente nuevamente más tarde.",
-                "message": "El registro de procedimientos se encuentra temporalmente en mantenimiento. Intente nuevamente más tarde."
-            },
-            status=status.HTTP_503_SERVICE_UNAVAILABLE
-        )
-
         serializer = ProcedureCreateSerializer(
             data=request.data,
             context={"request": request}
@@ -302,14 +294,6 @@ class ProcedureCodePreviewAPIView(APIView):
 class ProcedureCreateAPIView(APIView):
 
     def post(self, request):
-
-        return Response(
-            {
-                "error": "Servicio en mantenimiento, El registro de procedimientos se encuentra temporalmente en mantenimiento. Intente nuevamente más tarde.",
-                "message": "El registro de procedimientos se encuentra temporalmente en mantenimiento. Intente nuevamente más tarde."
-            },
-            status=status.HTTP_503_SERVICE_UNAVAILABLE
-        )
 
         serializer = ProcedureCreateSerializer(
             data=request.data,
