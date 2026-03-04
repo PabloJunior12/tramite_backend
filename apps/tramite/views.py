@@ -213,6 +213,25 @@ class ProcedureVirtualCreateAPIView(APIView):
 
     def post(self, request):
 
+        # 🔒 VALIDAR HORARIO
+        schedule_status = check_schedule(timezone.now())
+
+        if schedule_status == ScheduleResult.NO_LABORABLE:
+            return Response(
+                {
+                    "error": "Mesa de partes virtual no recibe documentos los domingos ni feriados."
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if schedule_status == ScheduleResult.OUT_OF_SCHEDULE:
+            return Response(
+                {
+                    "error": "Mesa de partes virtual solo recibe documentos dentro del horario de atención."
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = ProcedureCreateSerializer(
             data=request.data,
             context={"request": request}
@@ -230,28 +249,17 @@ class ProcedureVirtualCreateAPIView(APIView):
             .first()
         )
 
-        #  Enviar correo
+        # Enviar correo
         send_procedure_email(
             procedure=procedure,
-            is_out_of_schedule=(
-                first_flow.status == ProcedureFlow.PENDING_SCHEDULE
-            )
+            is_out_of_schedule=False
         )
 
-        # 🟢 Mensaje para frontend
-        if first_flow.status == ProcedureFlow.PENDING_SCHEDULE:
-            message = (
-                "El trámite ha sido registrado fuera del horario laboral "
-                "y será procesado automáticamente el siguiente día hábil. "
-                "Se ha enviado un correo con su código de seguimiento: "
-                f"Código de consulta: {procedure.tracking_code}"
-            )
-        else:
-            message = (
-                "Su documento fue registrado correctamente. "
-                "Se ha enviado un correo con su código de seguimiento: "
-                f"{procedure.tracking_code}"
-            )
+        message = (
+            "Su documento fue registrado correctamente. "
+            "Se ha enviado un correo con su código de seguimiento: "
+            f"{procedure.tracking_code}"
+        )
 
         return Response(
             {
@@ -295,16 +303,36 @@ class ProcedureCreateAPIView(APIView):
 
     def post(self, request):
 
+        schedule_status = check_schedule(timezone.now())
+
+        # ❌ Domingo o feriado
+        if schedule_status == ScheduleResult.NO_LABORABLE:
+            return Response(
+                {
+                    "error": "El registro de trámites no está disponible los domingos ni feriados."
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # ❌ Fuera de horario laboral
+        if schedule_status == ScheduleResult.OUT_OF_SCHEDULE:
+            return Response(
+                {
+                    "error": "El registro de trámites solo está disponible dentro del horario laboral."
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = ProcedureCreateSerializer(
             data=request.data,
             context={"request": request}
         )
+
         serializer.is_valid(raise_exception=True)
 
-        procedures = serializer.save()   # 👈 lista de trámites
-        procedure = procedures[0]        # 👈 primer trámite creado
+        procedures = serializer.save()
+        procedure = procedures[0]
 
-        # obtener el flow inicial
         first_flow = (
             ProcedureFlow.objects
             .filter(procedure=procedure)
@@ -312,19 +340,9 @@ class ProcedureCreateAPIView(APIView):
             .first()
         )
 
-        # 🟢 MENSAJE SEGÚN ESTADO
-        if first_flow.status == ProcedureFlow.PENDING_SCHEDULE:
-            message = (
-                "El trámite ha sido registrado fuera del horario laboral "
-                "y será procesado automáticamente el siguiente día hábil "
-                "en el horario de atención."
-            )
-        else:
-            message = "Trámite registrado exitosamente."
-
         return Response(
             {
-                "message": message,
+                "message": "Trámite registrado exitosamente.",
                 "status": first_flow.status,
                 "code": procedure.code
             },
