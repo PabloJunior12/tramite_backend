@@ -323,24 +323,13 @@ class ProcedureCreateSerializer(serializers.Serializer):
 
             origin_agency = area.agency if is_virtual else from_area.agency
 
-            # Código origen (SIEMPRE)
-            code = generate_procedure_code(origin_agency)
-
-            code_destino = None
-
-            # SOLO si va hacia Andahuaylas desde otra agencia
-            if not is_virtual:
-               
-               destination_agency = area.agency
-               main_agency = Agency.objects.get(id=settings.MAIN_AGENCY_ID)
-
-               if destination_agency.id == main_agency.id and origin_agency.id != main_agency.id:
-                  code_destino = generate_procedure_code(main_agency)
+            destination_agency = area.agency
+            main_agency = Agency.objects.get(id=settings.MAIN_AGENCY_ID)
 
             now_date = now()
-            procedure = Procedure.objects.create(
-                code=code,
-                code_destino=code_destino,
+
+            # 👇 1. Primero construyes el objeto SIN código
+            procedure = Procedure(
                 agency=origin_agency,
                 created_by=user,
                 from_area=from_area,
@@ -349,6 +338,20 @@ class ProcedureCreateSerializer(serializers.Serializer):
                 due_date=calculate_due_date(now_date),
                 **validated_data
             )
+
+            # 👇 2. Generas código SOLO justo antes de guardar
+            procedure.code = generate_procedure_code(origin_agency)
+
+            # 👇 3. Generar código destino SOLO si aplica
+            if (
+                not is_virtual and
+                destination_agency.id == main_agency.id and
+                origin_agency.id != main_agency.id
+            ):
+                procedure.code_destino = generate_procedure_code(main_agency)
+
+            # 👇 4. Guardas
+            procedure.save()
 
             sequence = 1
 

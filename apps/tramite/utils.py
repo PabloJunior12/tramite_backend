@@ -126,26 +126,26 @@ def resolve_sequence_agency(destination_area: Area) -> Agency:
     return destination_area.agency
 
 def generate_procedure_code(agency: Agency) -> str:
+    
     year = timezone.now().year
 
-    with transaction.atomic():
-        sequence, created = (
-            ProcedureSequence.objects
-            .select_for_update()
-            .get_or_create(
-                agency=agency,
-                year=year,
-                defaults={
-                    "last_number": agency.start_sequence - 1
-                }
-            )
+    sequence, created = (
+        ProcedureSequence.objects
+        .select_for_update()
+        .get_or_create(
+            agency=agency,
+            year=year,
+            defaults={
+                "last_number": agency.start_sequence - 1
+            }
         )
+    )
 
-        sequence.last_number += 1
-        sequence.save(update_fields=["last_number"])
+    sequence.last_number += 1
+    sequence.save(update_fields=["last_number"])
 
-        number_formatted = str(sequence.last_number).zfill(6)
-        return f"{number_formatted}-{year}"
+    number_formatted = str(sequence.last_number).zfill(6)
+    return f"{number_formatted}-{year}"
 
 def preview_procedure_code(agency: Agency) -> str:
     year = timezone.now().year
