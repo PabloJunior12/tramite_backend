@@ -541,7 +541,7 @@ class ProcedureUpdateSerializer(serializers.ModelSerializer):
 
         procedure: Procedure = self.context["procedure"]
 
-        flows_qs = ProcedureFlow.objects.filter(procedure=procedure)
+        flows_qs = ProcedureFlow.objects.filter(procedure=procedure, flow_type=ProcedureFlow.NORMAL)
 
         # ❌ No editable si tiene más de 1 flujo
         if flows_qs.count() > 1:
@@ -565,7 +565,7 @@ class ProcedureUpdateSerializer(serializers.ModelSerializer):
         # 2️⃣ Obtener el único flujo (si existe)
         flow = (
             ProcedureFlow.objects
-            .filter(procedure=procedure, flow_type=ProcedureFlow.NORMAL)
+            .filter(procedure=procedure)
             .order_by("created_at")
             .first()
         )
