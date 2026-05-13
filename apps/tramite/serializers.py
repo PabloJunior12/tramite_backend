@@ -18,6 +18,9 @@ from .utils import calculate_due_date, generate_procedure_code, get_next_sequenc
     
 
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GlobalBackupSerializer(serializers.ModelSerializer):
 
@@ -219,7 +222,9 @@ class ProcedureCreateSerializer(serializers.Serializer):
     )
     document_number = serializers.CharField()
     subject = serializers.CharField()
-    folios = serializers.IntegerField()
+    folios = serializers.IntegerField(
+    min_value=0
+    )
 
     # Remitente
     sender_dni = serializers.CharField(required=False, allow_blank=True)
@@ -274,129 +279,237 @@ class ProcedureCreateSerializer(serializers.Serializer):
     @transaction.atomic
     def create(self, validated_data):
 
-        request = self.context["request"]
-        is_virtual = validated_data.get("is_virtual", False)
-        files = request.FILES.getlist("files")
- 
-        #  VALIDACIÓN DE HORARIO (NUEVO)
-        schedule_status = check_schedule(now())
+        try:
 
-        if schedule_status == ScheduleResult.NO_LABORABLE:
-           raise serializers.ValidationError({
-              "error": "Estimado usuario el registro de trámites no está disponible los domingos ni feriados."
-           })
-        
-        #  DEFINIR ESTADO INICIAL DEL FLOW
-        flow_status = ProcedureFlow.SENT
-        registered_out_of_schedule_at = None
+            request = self.context["request"]
 
-        if schedule_status == ScheduleResult.OUT_OF_SCHEDULE:
-            flow_status = ProcedureFlow.PENDING_SCHEDULE
-            registered_out_of_schedule_at = now()
-
-        #  Usuario y área por defecto (TU CÓDIGO)
-        tracking_code = None
- 
-        if is_virtual:
-
-            agency = validated_data.pop("agency", None)
-
-            tracking_code = generate_unique_tracking_code()
-            user = User.objects.first()
-            from_area, to_area = get_virtual_areas(agency)
-
-            destination_areas = [to_area]
-
-        else:
-
-            user = request.user
-            from_area = validated_data.pop("from_area", None)
-            destination_area = validated_data.pop("destination_area", None)
-
-            destination_areas = [destination_area] if destination_area else []
-         
-        copy_areas = validated_data.pop("copy_areas", [])
-
-        created = []
-        last_main_procedure = None
-        for area in destination_areas:
-
-            origin_agency = area.agency if is_virtual else from_area.agency
-
-            destination_agency = area.agency
-            main_agency = Agency.objects.get(id=settings.MAIN_AGENCY_ID)
-
-            now_date = now()
-
-            # 👇 1. Primero construyes el objeto SIN código
-            procedure = Procedure(
-                agency=origin_agency,
-                created_by=user,
-                from_area=from_area,
-                to_area=area,
-                tracking_code=tracking_code,
-                due_date=calculate_due_date(now_date),
-                **validated_data
+            is_virtual = validated_data.get(
+                "is_virtual",
+                False
             )
 
-            # 👇 2. Generas código SOLO justo antes de guardar
-            procedure.code = generate_procedure_code(origin_agency)
+            files = request.FILES.getlist("files")
 
-            # 👇 3. Generar código destino SOLO si aplica
-            if (
-                not is_virtual and
-                destination_agency.id == main_agency.id and
-                origin_agency.id != main_agency.id
-            ):
-                procedure.code_destino = generate_procedure_code(main_agency)
+            schedule_status = check_schedule(now())
 
-            # 👇 4. Guardas
-            procedure.save()
+            if schedule_status == ScheduleResult.NO_LABORABLE:
+                raise serializers.ValidationError({
+                    "error": "No disponible."
+                })
 
-            sequence = 1
+            flow_status = ProcedureFlow.SENT
+            registered_out_of_schedule_at = None
 
-            # FLOW INICIAL (MODIFICADO)
-            ProcedureFlow.objects.create(
-                procedure=procedure,
-                to_area=area,
-                sent_by=user,
-                sequence=sequence,
-                subject=procedure.subject,
-                from_area=procedure.from_area,
-                flow_type=ProcedureFlow.NORMAL,
-                status=flow_status,
-                is_active=True,
-                registered_out_of_schedule_at=registered_out_of_schedule_at
-            )
+            if schedule_status == ScheduleResult.OUT_OF_SCHEDULE:
+                flow_status = ProcedureFlow.PENDING_SCHEDULE
+                registered_out_of_schedule_at = now()
 
-            # Archivos (TU CÓDIGO)
-            for file in files:
-                ProcedureFile.objects.create(
-                    procedure=procedure,
-                    file=file,
-                    uploaded_by=user,
-                    original_name=file.name
+            tracking_code = None
+
+            if is_virtual:
+
+                agency = validated_data.pop(
+                    "agency",
+                    None
                 )
 
-            last_main_procedure = procedure
-            created.append(procedure)
+                tracking_code = generate_unique_tracking_code()
 
-        for area in copy_areas:
+                user = User.objects.first()
 
-            ProcedureFlow.objects.create(
-                procedure=last_main_procedure,
-                to_area=area,
-                sent_by=user,
-                sequence=1,
-                subject=last_main_procedure.subject,
-                from_area=last_main_procedure.from_area,
-                flow_type=ProcedureFlow.COPY,  # 👈 DIFERENCIA
-                status=flow_status,
-                is_active=True,
-                registered_out_of_schedule_at=registered_out_of_schedule_at
+                from_area, to_area = get_virtual_areas(
+                    agency
+                )
+
+                destination_areas = [to_area]
+
+            else:
+
+                user = request.user
+
+                from_area = validated_data.pop(
+                    "from_area",
+                    None
+                )
+
+                destination_area = validated_data.pop(
+                    "destination_area",
+                    None
+                )
+
+                destination_areas = (
+                    [destination_area]
+                    if destination_area else []
+                )
+
+            copy_areas = validated_data.pop(
+                "copy_areas",
+                []
             )
 
-        return created
+            created = []
+
+            main_agency = Agency.objects.get(
+                id=settings.MAIN_AGENCY_ID
+            )
+
+            for area in destination_areas:
+
+                origin_agency = (
+                    area.agency
+                    if is_virtual
+                    else from_area.agency
+                )
+
+                destination_agency = area.agency
+
+                now_date = now()
+
+                # =====================================
+                # 1. CREAR TRÁMITE TEMPORAL
+                # =====================================
+
+                procedure = Procedure.objects.create(
+                    agency=origin_agency,
+                    created_by=user,
+                    from_area=from_area,
+                    to_area=area,
+                    tracking_code=tracking_code,
+                    due_date=calculate_due_date(now_date),
+                    code=None,
+                    is_registered=False,
+                    **validated_data
+                )
+
+                # =====================================
+                # 2. CREAR FLOW
+                # =====================================
+
+                ProcedureFlow.objects.create(
+                    procedure=procedure,
+                    to_area=area,
+                    sent_by=user,
+                    sequence=1,
+                    subject=procedure.subject,
+                    from_area=procedure.from_area,
+                    flow_type=ProcedureFlow.NORMAL,
+                    status=flow_status,
+                    is_active=True,
+                    registered_out_of_schedule_at=registered_out_of_schedule_at
+                )
+
+                # =====================================
+                # 3. GUARDAR ARCHIVOS
+                # =====================================
+
+                saved_files = []
+
+                for file in files:
+
+                    obj = ProcedureFile.objects.create(
+                        procedure=procedure,
+                        file=file,
+                        uploaded_by=user,
+                        original_name=file.name
+                    )
+
+                    saved_files.append(obj)
+
+                # =====================================
+                # 4. VALIDAR ARCHIVOS FÍSICOS
+                # =====================================
+
+                for saved_file in saved_files:
+
+                    if not saved_file.file:
+                        raise Exception(
+                            "Archivo inválido."
+                        )
+
+                    if not os.path.exists(
+                        saved_file.file.path
+                    ):
+                        raise Exception(
+                            f"Archivo no encontrado: "
+                            f"{saved_file.file.path}"
+                        )
+
+
+
+                # =====================================
+                # 5. GENERAR CORRELATIVO
+                # =====================================
+
+                procedure.code = generate_procedure_code(
+                    origin_agency
+                )
+
+                # =====================================
+                # 5. GENERAR ERROR DE PRUEBA
+                # =====================================
+
+                # raise Exception("ERROR DE PRUEBA")
+
+                # =====================================
+                # 6. GENERAR CÓDIGO DESTINO
+                # =====================================
+
+                if (
+                    not is_virtual and
+                    destination_agency.id == main_agency.id and
+                    origin_agency.id != main_agency.id
+                ):
+
+                    procedure.code_destino = (
+                        generate_procedure_code(
+                            main_agency
+                        )
+                    )
+
+                # =====================================
+                # 7. CONFIRMAR REGISTRO
+                # =====================================
+
+                procedure.is_registered = True
+
+                procedure.save(
+                    update_fields=[
+                        "code",
+                        "code_destino",
+                        "is_registered"
+                    ]
+                )
+
+                # =====================================
+                # 8. COPIAS
+                # =====================================
+
+                for copy_area in copy_areas:
+
+                    ProcedureFlow.objects.create(
+                        procedure=procedure,
+                        to_area=copy_area,
+                        sent_by=user,
+                        sequence=1,
+                        subject=procedure.subject,
+                        from_area=procedure.from_area,
+                        flow_type=ProcedureFlow.COPY,
+                        status=flow_status,
+                        is_active=True,
+                        registered_out_of_schedule_at=registered_out_of_schedule_at
+                    )
+
+                created.append(procedure)
+
+            return created
+
+        except Exception:
+
+            logger.exception(
+                "Error registrando trámite"
+            )
+
+            raise
 
 class ProcedureUpdateSerializer(serializers.ModelSerializer):
 

@@ -194,7 +194,17 @@ class ProcedureSequence(models.Model):
 
 class Procedure(models.Model):
 
-    code = models.CharField(max_length=20)
+    code = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        db_index=True
+    )
+
+    is_registered = models.BooleanField(
+        default=False,
+        db_index=True
+    )
 
     agency = models.ForeignKey(
         Agency,
@@ -310,14 +320,15 @@ class Procedure(models.Model):
 def procedure_file_path(instance, filename):
 
     procedure = instance.procedure
+
     agency_id = procedure.agency_id
-    code = procedure.code
+
     ext = filename.split('.')[-1]
 
     return (
         f"procedures/"
         f"agency_{agency_id}/"
-        f"{code}/"
+        f"procedure_{procedure.id}/"
         f"{uuid.uuid4()}.{ext}"
     )
 
