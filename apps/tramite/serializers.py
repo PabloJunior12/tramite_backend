@@ -565,7 +565,7 @@ class ProcedureUpdateSerializer(serializers.ModelSerializer):
         # 2️⃣ Obtener el único flujo (si existe)
         flow = (
             ProcedureFlow.objects
-            .filter(procedure=procedure)
+            .filter(procedure=procedure, flow_type=ProcedureFlow.NORMAL)
             .order_by("created_at")
             .first()
         )
