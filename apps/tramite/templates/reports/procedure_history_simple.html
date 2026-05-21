@@ -129,6 +129,14 @@
         .text-bg-dark {
             background-color: #000000;
         }
+
+        .finalize-comment {
+
+            text-align: justify;
+            font-size: 10px;
+
+        }
+
     </style>
 </head>
 
@@ -196,7 +204,7 @@
                 <th>Destino</th>
                 <th>Fecha</th>
                 <th>Responsable</th>
-                <th>Observación</th>
+                <th>Observaciones / Comentarios</th>
                 <th>Estado Trámite</th>
             </tr>
         </thead>
@@ -228,7 +236,45 @@
 
                     {{ authorized_flow.sent_by.surname|default:"" }}
                 </td>
-                <td>{% firstof authorized_flow.comment "" %}</td>
+                <td>
+
+                    {% if authorized_flow.comment %}
+                    <div>
+                        {{ authorized_flow.comment }}
+                    </div>
+                    {% endif %}
+
+                    {% if authorized_flow.finalize_comment %}
+
+                    <div class="finalize-comment">
+
+
+                        {{ authorized_flow.finalize_comment }}
+
+                        <br><br>
+
+                        <small>
+                            <b>Registrado:</b>
+
+                            {{ authorized_flow.sent_by.name }}
+
+                            {{ authorized_flow.sent_by.surname|default:"" }}
+                        </small>
+
+                         <span>
+
+                            <b>Cargo:</b>
+
+                            {{ authorized_flow.to_area.initials }}
+
+                        </span>
+
+
+                    </div>
+
+                    {% endif %}
+
+                </td>
                 <td>
 
                     <p>

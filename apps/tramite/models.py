@@ -455,6 +455,12 @@ class ProcedureFlow(models.Model):
         null=True, blank=True
     )
 
+    finalize_comment = models.TextField(
+        null=True,
+        blank=True
+    )
+
+
     class Meta:
 
         ordering = ["sequence"]

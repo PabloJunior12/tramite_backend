@@ -908,7 +908,29 @@ class DeriveFlowSerializer(serializers.Serializer):
 # FINALIZAR
 class FinalizeFlowSerializer(serializers.Serializer):
 
+    comment = serializers.CharField(
+            required=False,
+            allow_blank=True,
+            max_length=500
+    )
+
+    def validate_comment(self, value):
+
+        if not value:
+            return value
+
+        lines = value.splitlines()
+
+        if len(lines) > 4:
+            raise serializers.ValidationError(
+                "Solo se permiten máximo 4 líneas"
+            )
+
+        return value
+
     def validate(self, data):
+
+
         flow: ProcedureFlow = self.context["flow"]
         request = self.context["request"]
 
@@ -934,6 +956,7 @@ class FinalizeFlowSerializer(serializers.Serializer):
         flow: ProcedureFlow = self.context["flow"]
         user = self.context["request"].user
         procedure = flow.procedure
+        comment = self.validated_data.get("comment")
 
         #  Desactivar NORMAL activo
         flow.is_active = False
@@ -951,7 +974,9 @@ class FinalizeFlowSerializer(serializers.Serializer):
             is_active=True,
             subject=flow.subject,
             subject_derivar=flow.subject_derivar,
-            is_derive = flow.is_derive
+            is_derive = flow.is_derive,
+
+            finalize_comment = comment if comment else None,
         )
 
         ProcedureFlow.objects.filter(
