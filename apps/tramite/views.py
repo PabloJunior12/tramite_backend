@@ -596,14 +596,20 @@ class ProcedureConsultAPIView(generics.ListAPIView):
         code = self.request.query_params.get("code")
         year = self.request.query_params.get("year")
 
-        if agency:
-            qs = qs.filter(agency_id=agency)
-
-        if code:
+        if agency and code:
             qs = qs.filter(
-                Q(code__icontains=code) |
+                Q(agency_id=agency, code__icontains=code) |
                 Q(code_destino__icontains=code)
             )
+        else:
+            if agency:
+                qs = qs.filter(agency_id=agency)
+
+            if code:
+                qs = qs.filter(
+                    Q(code__icontains=code) |
+                    Q(code_destino__icontains=code)
+                )
 
         if year:
             qs = qs.filter(created_at__year=year)
