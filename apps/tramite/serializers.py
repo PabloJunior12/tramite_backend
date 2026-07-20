@@ -627,6 +627,7 @@ class ProcedureListSerializer(serializers.ModelSerializer):
     copies = serializers.SerializerMethodField()  # 👈 CLAVE
     is_rejected = serializers.SerializerMethodField()  # 👈 NUEVO
     reject_comment = serializers.SerializerMethodField()  
+    sent_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Procedure
@@ -657,6 +658,11 @@ class ProcedureListSerializer(serializers.ModelSerializer):
         ).first()  # por seguridad
 
         return flow.comment if flow else None
+
+    def get_sent_by_name(self, obj):
+        if obj.created_by:
+            return f"{obj.created_by.name} {obj.created_by.surname or ''}".strip()
+        return None
 
 class ProcedureAnnulSerializer(serializers.Serializer):
 
@@ -717,6 +723,7 @@ class ProcedureFlowSerializer(serializers.ModelSerializer):
     from_area = AreaSerializer()
     to_area = AreaSerializer()
     is_copy = serializers.SerializerMethodField()
+    sent_by_name = serializers.SerializerMethodField()
     original_finalizado = serializers.BooleanField(read_only=True)
 
     class Meta:
@@ -727,6 +734,11 @@ class ProcedureFlowSerializer(serializers.ModelSerializer):
     def get_is_copy(self, obj):
 
         return obj.flow_type == ProcedureFlow.COPY
+
+    def get_sent_by_name(self, obj):
+        if obj.sent_by:
+            return f"{obj.sent_by.name} {obj.sent_by.surname or ''}".strip()
+        return None
 
 # RECEPCIONAR
 class ReceiveFlowSerializer(serializers.Serializer):

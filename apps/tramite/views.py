@@ -1316,6 +1316,9 @@ class ProcedureHistorySimplicadoPDFAPIView(APIView):
                 "company_logo": logo_path,
                 "first_flow_status": first_flow_status,
                 "authorized_flow_status": authorized_flow_status,
+
+                "first_user": f"{first_flow.sent_by.name} {first_flow.sent_by.surname or ''}".strip(),
+                "last_user": f"{authorized_flow.sent_by.name} {authorized_flow.sent_by.surname or ''}".strip(),
             }
         )
 
