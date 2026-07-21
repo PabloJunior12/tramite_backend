@@ -215,8 +215,18 @@
                 <td>{% firstof f.flow.to_area.name "-" %}</td>
                 <td>{{ f.flow.created_at|date:"d-m-Y h:i:s A" }}</td>
                 <td>
-                    {{ f.flow.sent_by.name }}
-                    {{ f.flow.sent_by.surname|default:"" }}
+                    <strong>
+                        {{ f.flow.sent_by.name }}
+                        {{ f.flow.sent_by.surname|default:"" }}
+                    </strong>
+
+                    <div style="font-size: 11px; color: #555; margin-top: 5px;">
+                        {% for user_area in f.flow.sent_by.user_areas.all %}
+                            {{ user_area.area.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </div>
                 </td>
                 <td>
 

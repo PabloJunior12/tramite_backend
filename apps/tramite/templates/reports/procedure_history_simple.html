@@ -210,19 +210,22 @@
         </thead>
         <tbody>
             <tr>
-                <td>{% firstof first_flow.from_area.name "-" %}
-
-                    <!-- <div style="font-size: 11px; color: #666; margin-top: 10px;">
-                        {{ first_user  }}
-                   </div> -->
-
-                </td>
+                <td>{% firstof first_flow.from_area.name "-" %}</td>
                 <td>{% firstof first_flow.to_area.name "-" %}</td>
                 <td>{{ first_flow.created_at|date:"d-m-Y h:i:s A" }}</td>
                 <td>
-                    {{ first_flow.sent_by.name }}
+                    <strong>
+                        {{ first_flow.sent_by.name }}
+                        {{ first_flow.sent_by.surname|default:"" }}
+                    </strong>
 
-                    {{ first_flow.sent_by.surname|default:"" }}
+                    <div style="font-size: 11px; color: #555; margin-top: 5px;">
+                        {% for user_area in first_flow.sent_by.user_areas.all %}
+                            {{ user_area.area.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </div>
                 </td>
                 <td>{% firstof first_flow.comment "" %}</td>
                 <td>
@@ -234,22 +237,22 @@
                 </td>
             </tr>
             <tr>
-                <td>{% firstof authorized_flow.from_area.name "-" %}
-
-
-                     <!-- <div style="font-size: 11px; color: #666; margin-top: 10px;">
-                            {{ last_user  }}
-                   </div> -->
-
-                </td>
-
-
+                <td>{% firstof authorized_flow.from_area.name "-" %}</td>
                 <td>{% firstof authorized_flow.to_area.name "-" %}</td>
                 <td>{{ authorized_flow.created_at|date:"d-m-Y h:i:s A" }}</td>
                 <td>
-                    {{ authorized_flow.sent_by.name }}
+                    <strong>
+                        {{ authorized_flow.sent_by.name }}
+                        {{ authorized_flow.sent_by.surname|default:"" }}
+                    </strong>
 
-                    {{ authorized_flow.sent_by.surname|default:"" }}
+                    <div style="font-size: 11px; color: #555; margin-top: 5px;">
+                        {% for user_area in authorized_flow.sent_by.user_areas.all %}
+                            {{ user_area.area.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </div>
                 </td>
                 <td>
 

@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 
-from django.db.models import OuterRef, Subquery, Q, Exists
+from django.db.models import OuterRef, Subquery, Q, Exists, Prefetch
 from django.template.loader import render_to_string
 from django.http import HttpResponse, FileResponse, Http404
 from django.db import transaction, models
@@ -1214,7 +1214,13 @@ class ProcedureHistoryPDFAPIView(APIView):
                 procedure=procedure,
                 flow_type=ProcedureFlow.NORMAL, 
             )
-            .select_related("from_area", "to_area")
+            .select_related("from_area", "to_area", "sent_by")
+            .prefetch_related(
+                Prefetch(
+                    "sent_by__user_areas",
+                    queryset=UserArea.objects.select_related("area")
+                )
+            )
             .order_by("sequence")
         )
 
@@ -1265,9 +1271,15 @@ class ProcedureHistorySimplicadoPDFAPIView(APIView):
             ProcedureFlow.objects
             .filter(
                 procedure=procedure,
-                flow_type=ProcedureFlow.NORMAL, 
+                flow_type=ProcedureFlow.NORMAL,
             )
-            .select_related("from_area", "to_area")
+            .select_related("from_area", "to_area", "sent_by")
+            .prefetch_related(
+                Prefetch(
+                    "sent_by__user_areas",
+                    queryset=UserArea.objects.select_related("area")
+                )
+            )
             .order_by("sequence")
             .first()
         )
@@ -1281,7 +1293,13 @@ class ProcedureHistorySimplicadoPDFAPIView(APIView):
                 status=ProcedureFlow.SENT,
                 origin_options__contains=["AUTHORIZED"]
             )
-            .select_related("from_area", "to_area")
+            .select_related("from_area", "to_area", "sent_by")
+            .prefetch_related(
+                Prefetch(
+                    "sent_by__user_areas",
+                    queryset=UserArea.objects.select_related("area")
+                )
+            )
             .order_by("-sequence")
             .first()
         )
@@ -1317,8 +1335,6 @@ class ProcedureHistorySimplicadoPDFAPIView(APIView):
                 "first_flow_status": first_flow_status,
                 "authorized_flow_status": authorized_flow_status,
 
-                "first_user": f"{first_flow.sent_by.name} {first_flow.sent_by.surname or ''}".strip(),
-                "last_user": f"{authorized_flow.sent_by.name} {authorized_flow.sent_by.surname or ''}".strip(),
             }
         )
 
