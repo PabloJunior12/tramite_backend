@@ -628,6 +628,8 @@ class ProcedureListSerializer(serializers.ModelSerializer):
     is_rejected = serializers.SerializerMethodField()  # 👈 NUEVO
     reject_comment = serializers.SerializerMethodField()  
     sent_by_name = serializers.SerializerMethodField()
+    origin_user = serializers.SerializerMethodField()
+    destination_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Procedure
@@ -663,6 +665,38 @@ class ProcedureListSerializer(serializers.ModelSerializer):
         if obj.created_by:
             return f"{obj.created_by.name} {obj.created_by.surname or ''}".strip()
         return None
+
+    def get_origin_user(self, obj):
+
+        if not obj.from_area:
+            return None
+
+        user_area = obj.from_area.area_users.select_related("user").first()
+
+        if not user_area:
+            return None
+
+        return {
+            "id": user_area.user.id,
+            "name": f"{user_area.user.name} {user_area.user.surname or ''}".strip()
+        }
+
+    def get_destination_user(self, obj):
+
+        user_area = (
+            obj.to_area.area_users
+            .select_related("user")
+            .filter(user__is_active=True)
+            .first()
+        )
+
+        if not user_area:
+            return None
+
+        return {
+            "id": user_area.user.id,
+            "name": f"{user_area.user.name} {user_area.user.surname or ''}".strip()
+        }
 
 class ProcedureAnnulSerializer(serializers.Serializer):
 
@@ -724,21 +758,46 @@ class ProcedureFlowSerializer(serializers.ModelSerializer):
     to_area = AreaSerializer()
     is_copy = serializers.SerializerMethodField()
     sent_by_name = serializers.SerializerMethodField()
+    origin_user = serializers.SerializerMethodField()
+    destination_user = serializers.SerializerMethodField()
     original_finalizado = serializers.BooleanField(read_only=True)
 
     class Meta:
-
         model = ProcedureFlow
-        fields = '__all__'
+        fields = "__all__"
 
     def get_is_copy(self, obj):
-
         return obj.flow_type == ProcedureFlow.COPY
 
     def get_sent_by_name(self, obj):
         if obj.sent_by:
             return f"{obj.sent_by.name} {obj.sent_by.surname or ''}".strip()
         return None
+
+    def _get_area_user(self, area):
+        if not area:
+            return None
+
+        user_area = (
+            area.area_users
+            .select_related("user")
+            .filter(user__is_active=True)
+            .first()
+        )
+
+        if not user_area:
+            return None
+
+        return {
+            "id": user_area.user.id,
+            "name": f"{user_area.user.name} {user_area.user.surname or ''}".strip()
+        }
+
+    def get_origin_user(self, obj):
+        return self._get_area_user(obj.from_area)
+
+    def get_destination_user(self, obj):
+        return self._get_area_user(obj.to_area)
 
 # RECEPCIONAR
 class ReceiveFlowSerializer(serializers.Serializer):
