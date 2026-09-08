@@ -668,18 +668,14 @@ class ProcedureListSerializer(serializers.ModelSerializer):
 
     def get_origin_user(self, obj):
 
-        if not obj.from_area:
-            return None
-
-        user_area = obj.from_area.area_users.select_related("user").first()
-
-        if not user_area:
+        if not obj.created_by:
             return None
 
         return {
-            "id": user_area.user.id,
-            "name": f"{user_area.user.name} {user_area.user.surname or ''}".strip()
+            "id": obj.created_by.id,
+            "name": f"{obj.created_by.name} {obj.created_by.surname or ''}".strip()
         }
+
 
     def get_destination_user(self, obj):
 
