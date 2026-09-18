@@ -577,6 +577,7 @@ class CopyDecisionAPIView(APIView):
         )
 
 # ----------- LIST MOVIMIENTOS
+# ----------- CONSULTA DE TRÁMITES
 class ProcedureConsultAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureListSerializer
@@ -609,7 +610,9 @@ class ProcedureConsultAPIView(generics.ListAPIView):
         # OBTENER ÁREA
         # =====================================================
 
-        area = Area.objects.filter(
+        area = Area.objects.select_related(
+            "agency"
+        ).filter(
             id=area_id,
             state=True
         ).first()
@@ -618,49 +621,58 @@ class ProcedureConsultAPIView(generics.ListAPIView):
             return Procedure.objects.none()
 
         # =====================================================
-        # RESTRICCIÓN POR ÁREA
+        # VERIFICAR QUE EL USUARIO PERTENECE AL ÁREA
         # =====================================================
 
-        # Áreas que pueden ver TODOS los trámites
-        areas_libres = [
-            "Gerencia",
-            "Mesa De Partes Andahuaylas",
-        ]
+        if not UserArea.objects.filter(
+            user=self.request.user,
+            area_id=area_id
+        ).exists():
 
-        # Mesas de Partes que solamente pueden ver
-        # trámites de su propia agencia
-        mesas_partes_agencia = [
-            "Mesa De Partes Uripa",
-            "Mesa De Partes Huancaray",
-            "Mesa De Partes Huancarama",
-            "Mesa De Partes Abancay",
-        ]
+            return Procedure.objects.none()
 
-        if area.name in areas_libres:
+        # =====================================================
+        # RESTRICCIÓN DE TRÁMITES
+        # =====================================================
 
-            # =============================================
-            # Puede ver todos
-            # =============================================
+        if area.procedure_visibility == "ALL":
+
+            # -------------------------------------------------
+            # Puede ver todos los trámites
+            # -------------------------------------------------
             pass
 
-        elif area.name in mesas_partes_agencia:
+        elif area.procedure_visibility == "AGENCY":
 
-            # =============================================
-            # Solo trámites de su agencia
-            # =============================================
+            # -------------------------------------------------
+            # Solo puede ver trámites de su agencia
+            # -------------------------------------------------
+
+            if not area.agency_id:
+                return Procedure.objects.none()
+
             qs = qs.filter(
                 agency_id=area.agency_id
             )
 
-        else:
+        elif area.procedure_visibility == "AREA":
 
-            # =============================================
-            # Otras áreas:
-            # solo trámites originados en su área
-            # =============================================
+            # -------------------------------------------------
+            # Solo puede ver trámites originados en su área
+            # -------------------------------------------------
+
             qs = qs.filter(
                 from_area_id=area_id
             )
+
+        else:
+
+            # -------------------------------------------------
+            # Configuración desconocida
+            # Por seguridad no mostramos nada
+            # -------------------------------------------------
+
+            return Procedure.objects.none()
 
         # =====================================================
         # FILTROS
@@ -670,9 +682,9 @@ class ProcedureConsultAPIView(generics.ListAPIView):
         code = self.request.query_params.get("code")
         year = self.request.query_params.get("year")
 
-        # -----------------------------------------------------
-        # Agencia + código
-        # -----------------------------------------------------
+        # =====================================================
+        # FILTRO AGENCIA + CÓDIGO
+        # =====================================================
 
         if agency and code:
 
@@ -689,18 +701,18 @@ class ProcedureConsultAPIView(generics.ListAPIView):
 
         else:
 
-            # -------------------------------------------------
-            # Solo agencia
-            # -------------------------------------------------
+            # =================================================
+            # FILTRO POR AGENCIA
+            # =================================================
 
             if agency:
                 qs = qs.filter(
                     agency_id=agency
                 )
 
-            # -------------------------------------------------
-            # Solo código
-            # -------------------------------------------------
+            # =================================================
+            # FILTRO POR CÓDIGO
+            # =================================================
 
             if code:
                 qs = qs.filter(

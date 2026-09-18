@@ -94,6 +94,12 @@ class AreaSerializer(serializers.ModelSerializer):
     
     agency_name = serializers.CharField(source='agency.name', read_only=True)
 
+    procedure_visibility_display = serializers.CharField(
+        source="get_procedure_visibility_display",
+        read_only=True
+    )
+
+
     class Meta:
 
         model = Area
