@@ -591,31 +591,85 @@ class ProcedureConsultAPIView(generics.ListAPIView):
             "created_by"
         ).order_by("-created_at")
 
-        # filtros
+        # =====================================================
+        # ÁREA ACTIVA
+        # =====================================================
+
+        area_id = self.request.headers.get("X-Area-Id")
+
+        if not area_id:
+            return Procedure.objects.none()
+
+        try:
+            area_id = int(area_id)
+        except (TypeError, ValueError):
+            return Procedure.objects.none()
+
+        # =====================================================
+        # RESTRICCIÓN POR ÁREA
+        # =====================================================
+
+        area = Area.objects.filter(id=area_id).first()
+
+        if not area:
+            return Procedure.objects.none()
+
+        # Gerencia y Mesa de Partes pueden ver todo
+        areas_libres = [
+            "Gerencia",
+            "Mesa De Partes Andahuaylas",
+        ]
+
+  
+        if area.name not in areas_libres:
+
+            print('entro aqui')
+            # Solo trámites originados en el área actual
+            qs = qs.filter(
+                from_area_id=area_id
+            )
+
+        # =====================================================
+        # FILTROS
+        # =====================================================
+
         agency = self.request.query_params.get("agency")
         code = self.request.query_params.get("code")
         year = self.request.query_params.get("year")
 
         if agency and code:
+
             qs = qs.filter(
-                Q(agency_id=agency, code__icontains=code) |
-                Q(code_destino__icontains=code)
+                Q(
+                    agency_id=agency,
+                    code__icontains=code
+                )
+                |
+                Q(
+                    code_destino__icontains=code
+                )
             )
+
         else:
+
             if agency:
-                qs = qs.filter(agency_id=agency)
+                qs = qs.filter(
+                    agency_id=agency
+                )
 
             if code:
                 qs = qs.filter(
-                    Q(code__icontains=code) |
+                    Q(code__icontains=code)
+                    |
                     Q(code_destino__icontains=code)
                 )
 
         if year:
-            qs = qs.filter(created_at__year=year)
+            qs = qs.filter(
+                created_at__year=year
+            )
 
         return qs
-
 class VirtualFlowListAPIView(generics.ListAPIView):
 
     serializer_class = ProcedureFlowSerializer
