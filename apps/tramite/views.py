@@ -1,10 +1,10 @@
 
 from .serializers import CompanySerializer, ProvinceSerializer, SubsanarFlowSerializer, ProcedureCodePreviewSerializer, SystemBackupSerializer, GlobalBackupSerializer,  DepartmentSerializer, ProcedureUpdateCopiesSerializer, DistrictSerializer, ProcedureAnnulSerializer,  WorkScheduleSerializer, HolidaySerializer, ProcedureUpdateSerializer, ResendObservedFlowSerializer, RejectFlowSerializer, ObservedFlowSerializer, AreaSerializer, FinalizeFlowSerializer, DeriveFlowSerializer, ProcedureFlowSerializer, ReceiveFlowSerializer, DocumentSerializer, ProcedureListSerializer, MyAreaSerializer, AgencySerializer, ProcedureCreateSerializer
-from .models import Company, Department, Province, District, UserArea, Area, Document, Agency, Procedure, ProcedureFlow, GlobalBackup, ProcedureFile, Holiday, WorkSchedule, SystemBackup
+from .models import Company, Department, SystemLicense, Province, District, UserArea, Area, Document, Agency, Procedure, ProcedureFlow, GlobalBackup, ProcedureFile, Holiday, WorkSchedule, SystemBackup
 
 from rest_framework import status, viewsets, generics
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
@@ -1734,3 +1734,26 @@ class BackupDownloadView(APIView):
             as_attachment=True,
             filename=backup.filename
         )
+
+class LicenseStatusView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+
+        license = SystemLicense.objects.first()
+
+        if not license:
+            return Response({
+                "expired": True,
+                "message": "No existe una licencia configurada."
+            })
+
+        return Response({
+            "expired": license.is_expired,
+            "expiration_date": license.expiration_date,
+            "message": license.message,
+            "days_remaining": (
+                license.expiration_date - timezone.localdate()
+            ).days
+        })

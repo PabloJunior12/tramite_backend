@@ -682,7 +682,6 @@ class ProcedureListSerializer(serializers.ModelSerializer):
             "name": f"{obj.created_by.name} {obj.created_by.surname or ''}".strip()
         }
 
-
     def get_destination_user(self, obj):
 
         user_area = (

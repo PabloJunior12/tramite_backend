@@ -6,6 +6,38 @@ import os
 
 User = settings.AUTH_USER_MODEL
 
+class SystemLicense(models.Model):
+
+    expiration_date = models.DateField(
+        verbose_name="Fecha de vencimiento"
+    )
+
+    is_active = models.BooleanField(default=True)
+
+    message = models.CharField(
+        max_length=255,
+        default="La licencia del sistema ha vencido."
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Licencia del sistema"
+        verbose_name_plural = "Licencia del sistema"
+
+    def __str__(self):
+        return f"Vence: {self.expiration_date}"
+
+    @property
+    def is_expired(self):
+
+        from django.utils import timezone
+
+        return (
+            not self.is_active or
+            timezone.localdate() >= self.expiration_date
+        )
+
 class SystemBackup(models.Model):
 
     BACKUP_TYPE_CHOICES = (
@@ -61,7 +93,6 @@ class GlobalBackup(models.Model):
     def __str__(self):
         
         return self.file_name
-
 
 class Department(models.Model):
 

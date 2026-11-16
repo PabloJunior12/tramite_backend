@@ -19529,66 +19529,7 @@
       "name": "Acta De Entrega"
     }
   },
-  {
-    "model": "tramite.workschedule",
-    "pk": 1,
-    "fields": {
-      "day": 0,
-      "start_time": "08:25",
-      "end_time": "17:00",
-      "is_active": true
-    }
-  },
-  {
-    "model": "tramite.workschedule",
-    "pk": 2,
-    "fields": {
-      "day": 1,
-      "start_time": "08:25",
-      "end_time": "17:00",
-      "is_active": true
-    }
-  },
-  {
-    "model": "tramite.workschedule",
-    "pk": 3,
-    "fields": {
-      "day": 2,
-      "start_time": "08:25",
-      "end_time": "17:00",
-      "is_active": true
-    }
-  },
-  {
-    "model": "tramite.workschedule",
-    "pk": 4,
-    "fields": {
-      "day": 3,
-      "start_time": "08:25",
-      "end_time": "17:00",
-      "is_active": true
-    }
-  },
-  {
-    "model": "tramite.workschedule",
-    "pk": 5,
-    "fields": {
-      "day": 4,
-      "start_time": "08:25",
-      "end_time": "17:00",
-      "is_active": true
-    }
-  },
-  {
-    "model": "tramite.workschedule",
-    "pk": 6,
-    "fields": {
-      "day": 5,
-      "start_time": "08:25",
-      "end_time": "12:00",
-      "is_active": true
-    }
-  },
+
   {
     "model": "tramite.holiday",
     "pk": 1,
@@ -19696,5 +19637,17 @@
       "description": "Navidad",
       "is_active": true
     }
+  },
+
+  {
+    "model": "tramite.systemlicense",
+    "pk": 1,
+    "fields": {
+      "expiration_date": "2026-12-31",
+      "is_active": true,
+      "message": "La licencia del sistema ha vencido.",
+      "updated_at": "2026-12-31"
+    }
   }
+
 ]
